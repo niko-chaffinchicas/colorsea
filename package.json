@@ -4,7 +4,8 @@
   "description": "A starting point for Polymer 1.0 custom build apps",
   "license": "http://polymer.github.io/LICENSE.txt",
   "scripts": {
-    "build": "gulp"
+    "build": "gulp",
+    "start": "node server/app.js"
   },
   "devDependencies": {
     "del": "^2.2.1",
