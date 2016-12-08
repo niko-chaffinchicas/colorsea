@@ -23,6 +23,7 @@
   },
   "private": true,
   "dependencies": {
-    "color-space": "^1.14.7"
+    "color-space": "^1.14.7",
+    "express": "^4.14.0"
   }
 }
