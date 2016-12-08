@@ -5,7 +5,8 @@
   "license": "http://polymer.github.io/LICENSE.txt",
   "scripts": {
     "build": "gulp",
-    "start": "node server/app.js"
+    "start": "node server/app.js",
+    "postinstall": "bower install"
   },
   "devDependencies": {
     "del": "^2.2.1",
