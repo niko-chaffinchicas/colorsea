@@ -7,6 +7,11 @@
         display: block;
         width: 300px;
         padding: 5px 0;
+        --slider-height: 18px;
+        --slider-border-radius: 3px;
+        --slider-picker-width: 26px;
+        --slider-picker-height: 26px;
+        --slider-picker-border-radius: 13px;
       }
 
       .slider-gradient,
@@ -15,26 +20,32 @@
       }
 
       .slider-gradient {
-        height: 30px;
+        height: var(--slider-height);
+        border-radius: var(--slider-border-radius);
         position: relative;
+        box-shadow: 0 0 1px rgba(0, 0, 0, 0.2);
       }
 
       .slider-picker {
+        box-sizing: border-box;
         position: absolute;
-        top: -2px;
+        top: 50%;
+        /*margin-top: -2px;*/
         left: 0;
-        transform: translate(-50%, 0);
-        width: 10px;
-        height: 30px;
+        transform: translate(-50%, -50%);
+        width: var(--slider-picker-width);
+        height: var(--slider-picker-height, --slider-height);
         border: 2px solid #fff;
         box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2), 0 0 5px rgba(0, 0, 0, 0.1), 0 0 1px rgba(0, 0, 0, 0.3);
-        border-radius: 4px;
+        border-radius: var(--slider-picker-border-radius);
       }
     </style>
-    <div on-track="_handleTrack" id="sliderGradient" style$="background-image: {{ _gradient }};" class="slider-gradient">
+    <div on-down="_handleDown" on-track="_handleTrack" id="sliderGradient" style$="background-image: {{ _gradient }};" class="slider-gradient">
       <div id="picker" class="slider-picker" style$="background-color: {{ _selected }}; left: {{ _left }};"></div>
     </div>
   </template>
+
+  <script src="../../color-space/color-space.js"></script>
   <script>
   Polymer({
     is: 'color-slider',
@@ -47,7 +58,8 @@
       val: {
         type: Number,
         value: 0,
-        notify: true
+        notify: true,
+        reflectToAttribute: true,
       },
       /*
       The minimum and maximum values for the range slider.
@@ -67,6 +79,15 @@
         type: Number,
         value: 15
       },
+
+      /*
+      The starting color type
+      */
+      colorSpace: {
+        type: String,
+        value: "rgb"
+      },
+
       /*
       The forumla for setting the background gradient for the slider, with `$val`
       being the dynamic property. For example, if the slider is computing an
@@ -86,7 +107,7 @@
       */
       _selected: {
         type: String,
-        computed: '_getSelectedColor(val, formula)'
+        computed: '_getSelectedColor(val, colorSpace, formula)'
       },
 
       /*
@@ -102,45 +123,84 @@
       */
       _gradient: {
         type: String,
-        computed: '_generateBackgroundGradient(min, max, step, formula)'
+        computed: '_generateBackgroundGradient(min, max, step, colorSpace, formula)'
       }
     },
 
-    _generateBackgroundGradient: function(min, max, step, formula) {
+    _getRGBColor: function(val, _colorSpace, formula) {
+      if (formula.match(_colorSpace, formula) && (_colorSpace == "rgb" || _colorSpace == "hsl")) {
+        return formula.replace('$val', val);
+      } else {
+        // Get the color space that the slider is editing a value in
+        var formulaSpace = formula.match(/\w+\(/)[0].replace('(', '');
+        // Get the values for the particular color space, removing the color space
+        // name, whitespace, and parentheses.
+        var values = formula.replace('$val', val).replace(/(\w+\(|\)|\s)/g, '');
+        // Split the values into an array
+        values = values.split(',');
+        // Convert the color values from the editing color space and convert them
+        // into RGB values
+        var rgb = colorSpace[_colorSpace].rgb(values);
+        // Round the floating point numbers into integers (RGB color spec doesn't
+        // allow for floating point numbers, only integers)
+        rgb = rgb.map(function(number) { return Math.round(parseFloat(number)) });
+        // Return the RGB values in the CSS color definition
+        rgb = "rgb(" + rgb.join(', ') + ")";
+        return rgb;
+      }
+    },
+
+    _generateBackgroundGradient: function(min, max, step, colorSpace, formula) {
       var _current = min;
       var _output = "linear-gradient(to right, ";
 
       while (_current <= max) {
         var _percent = Math.floor(_current / max * 1000) / 10;
-        _output += " " + formula.replace('$val', _current) + " $p%,".replace('$p', _percent);
+        _output += " " + this._getRGBColor(_current, colorSpace, formula) + " $p%,".replace('$p', _percent);
         _current += step;
       }
       if (_current != max) {
-        _output += " " + formula.replace('$val', max) + " 100%";
+        _output += " " + this._getRGBColor(max, colorSpace, formula) + " 100%";
       }
       _output += ")";
       return _output;
     },
 
-    _getSelectedColor: function(val, formula) {
-      return formula.replace('$val', val);
+    _getSelectedColor: function(val, _colorSpace, formula) {
+      return this._getRGBColor(val, _colorSpace, formula);
     },
 
     _getXPos: function(val, min, max) {
       return (Math.floor((val - min) / (max - min) * 1000) / 10) + "%";
     },
 
+    _handleDown: function(e, detail) {
+      this._onTouchXChange(detail.x);
+    },
+
     _handleTrack: function(e, detail) {
       switch (detail.state) {
         case 'start':
+          document.activeElement.blur();
+          this.fire('allow-scrolling', false);
         case 'track':
           this._onTouchXChange(detail.x);
           break;
         case 'end':
+          this.fire('allow-scrolling', true);
+          this._clearSelection();
           break;
         default:
 
       }
+    },
+
+    _clearSelection: function() {
+        if (document.selection) {
+            document.selection.empty();
+        } else if (window.getSelection) {
+            window.getSelection().removeAllRanges();
+        }
     },
 
     _onTouchXChange(clientX) {
@@ -157,7 +217,7 @@
     },
 
     ready: function() {
-      var gradient = this._generateBackgroundGradient(this.min, this.max, this.step, this.formula);
+      var gradient = this._generateBackgroundGradient(this.min, this.max, this.step, this.colorSpace, this.formula);
       this.$.sliderGradient.style.backgroundImage = gradient;
     }
   })

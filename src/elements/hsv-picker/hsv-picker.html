@@ -1,30 +1,41 @@
 <link rel="import" href="../../../bower_components/polymer/polymer.html">
 <link rel="import" href="../../../bower_components/iron-input/iron-input.html">
 <link rel="import" href="../color-slider/color-slider.html">
+<link rel="import" href="../compact-input/compact-input.html">
 
 
-<dom-module id="color-picker">
+<dom-module id="hsv-picker">
   <template>
     <style>
     :host {
       display: block;
       font-family: sans-serif;
-      width: 250px;
+    }
+
+    :host:after {
+      content: "";
+      display: table;
+      clear: both;
     }
 
     .color-block {
-      width: 100%;
+      width: 200px;
       height: 150px;
       margin-bottom: 20px;
+      margin-right: 16px;
       /*padding-bottom: 100%;*/
       background-image: linear-gradient(to right, #fff, #f00);
       position: relative;
       cursor: pointer;
+      float: left;
+      border-radius: 4px;
     }
+
     .color-block:after {
       content: "";
       display: block;
       position: absolute;
+      border-radius: 4px;
       top: 0;
       right: 0;
       bottom: 0;
@@ -32,17 +43,35 @@
       background-image: linear-gradient(transparent, black);
     }
 
-    input[type="range"] {
-      margin-left: 0;
-      width: 100%;
+    color-slider {
+      width: 200px;
+      float: left;
+      clear: left;
+    }
+
+    input[type="number"],
+    label {
+      font-size: 18px;
+      line-height: 28px;
+      font-weight: bold;
     }
 
     input[type="number"] {
-      width: 60px;
+      box-sizing: border-box;
+      color: #595959;
+      width: 64px;
+      height: 28px;
+      text-align: center;
+      border-radius: 3px;
+      border: 1px solid #ccc;
+      margin-bottom: 8px;
+      padding-left: 13px;
     }
 
     label {
-      font-weight: bold;
+      color: #C2C2C2;
+      display: inline-block;
+      width: 20px;
     }
 
     :host, input {
@@ -72,28 +101,23 @@
       z-index: 10;
     }
 
-    color-slider {
-      width: 100%;
-    }
-
     </style>
 
-    <div on-track="_handleTouch" id="block" class="color-block">
+    <div on-down="_handleTouch" on-track="_handleTouch" id="block" class="color-block">
       <div id="picker" class="picker"></div>
     </div>
 
-    <!-- <input is="iron-input" bind-value="{{hsl.h}}" type="range" min="0" max="360" value="0" name="hue_slider"> -->
-    <color-slider val="{{ hsl.h }}" max="360" formula="{{ _getFormulaForHueSlider(hsl.s, hsl.l) }}"></color-slider>
-    <br>
+    <color-slider val="{{ hsl.h }}" color-space="hsl" max="360" formula="{{ _getFormulaForHueSlider(hsl.s, hsl.l) }}"></color-slider>
 
-    <label>H: </label>
-    <input is="iron-input" bind-value="{{hsl.h}}" type="number" min="0" max="360" value="0" name="hue">
-    &nbsp;
-    <label>S: </label>
-    <input is="iron-input" bind-value="{{hsl.s}}" type="number" min="0" max="100" value="0" name="saturation">
-    &nbsp;
-    <label>L: </label>
-    <input is="iron-input" bind-value="{{hsl.l}}" type="number" min="0" max="100" value="100" name="lightness">
+    <!-- <label>H</label>
+    <input is="iron-input" bind-value="{{hsv.h}}" type="number" min="0" max="360" value="0" name="hue"> -->
+    <compact-input label="H" max="360" value="{{ hsv.h }}"></compact-input>
+    <br>
+    <label>S</label>
+    <input is="iron-input" bind-value="{{hsv.s}}" type="number" min="0" max="100" value="0" name="saturation">
+    <br>
+    <label>B</label>
+    <input is="iron-input" bind-value="{{hsv.v}}" type="number" min="0" max="100" value="100" name="lightness">
 
     <br>
 
@@ -101,9 +125,10 @@
     </div>
   </template>
 
+  <script src="../../color-space/color-space.js"></script>
   <script>
   Polymer({
-    is: 'color-picker',
+    is: 'hsv-picker',
 
     properties: {
       /*
@@ -111,11 +136,25 @@
       */
       hsl: {
         type: Object,
+        notify: true,
         value: function() {
           return {
             h: 0,
             s: 100,
             l: 100
+          }
+        }
+      },
+      /*
+      Stores an HSB definition of the color currently being picked.
+      */
+      hsv: {
+        type: Object,
+        value: function() {
+          return {
+            h: 0,
+            s: 0,
+            b: 100
           }
         }
       },
@@ -150,10 +189,20 @@
     },
 
     observers: [
-      '_hslChanged(hsl.h, hsl.s, hsl.l)'
+      '_hslChanged(hsl.h, hsl.s, hsl.l)',
+      '_hsvChanged(hsv.h, hsv.s, hsv.v)'
     ],
 
+    _hsvChanged: function(h, s, b) {
+      this.set('hsl.h', h);
+      var hsl = colorSpace.hsv.hsl([h,s,b]);
+      this.set('hsl.s', hsl[1]);
+      this.set('hsl.l', hsl[2]);
+    },
+
     _hslChanged: function(h, s, l) {
+      this.set('hsv.h', h);
+
       for (var key in this.hsl) {
         this.hsl[key] = parseInt(this.hsl[key]);
         if (this._limits) {
@@ -194,7 +243,7 @@
     },
 
     _getCoordsFromSaturationAndLightness: function(s, l) {
-      var hsv = this.hsl2hsv(0, s, l);
+      var hsv = colorSpace.hsl.hsv([0,s,l]);
       var newSat = parseInt(hsv[1]),
           newLight = parseInt(hsv[2]);
 
@@ -254,80 +303,26 @@
       this.$.picker.style.top = y + "%";
       this.$.picker.style.left = x + "%";
 
-      var _hslArr = this.hsv2hsl(0, x, 100 - y);
-
-      this.set("hsl.s", _hslArr[1]);
-      this.set("hsl.l", _hslArr[2]);
+      this.set('hsv.s', x);
+      this.set('hsv.v', 100 - y);
     },
 
     _handleTouch: function(e, detail) {
       e.preventDefault();
       switch (detail.state) {
         case 'start':
+          document.activeElement.blur();
           this.fire('allow-scrolling', false);
         case 'track':
           this._onCoordMove(detail.x, detail.y);
           break;
         case 'end':
           this.fire('allow-scrolling', true);
-          this._clearSelection();
           break;
         default:
 
       }
       this._onCoordMove(detail.x, detail.y);
-    },
-
-    _clearSelection: function() {
-        if (document.selection) {
-            document.selection.empty();
-        } else if (window.getSelection) {
-            window.getSelection().removeAllRanges();
-        }
-    },
-
-    hsv2hsl: function(hue, sat, val){
-      sat = sat / 100; // convert from 0-100 to 0-1
-      val = val / 100; // convert from 0-100 to 0-1
-
-      // Saturation is very different between the two color spaces
-      // If (2-sat)*val < 1 set it to sat*val/((2-sat)*val)
-      // Otherwise sat*val/(2-(2-sat)*val)
-      // Conditional is not operating with hue, it is reassigned!
-      var h;
-      var newSat = Math.floor((sat*val/((h=(2-sat)*val)<1?h:2-h))*10000)/100;
-      // If newSaturation is NaN (due to division by 0), make it 0
-      if (!newSat && newSat != 0) {
-        newSat = 0;
-      }
-      // Lightness is (2-sat)*val/2
-      // See reassignment of h above
-      var newLight = Math.floor((h/2)*10000)/100;
-      //[hue, saturation, lightness]
-      return [
-        hue,
-        newSat,
-        newLight
-      ];
-    },
-
-    hsl2hsv: function(hue,sat,light){
-      sat = sat / 100; // convert from 0-100 to 0-1
-      light = light / 100; // convert from 0-100 to 0-1
-
-      sat*=light<.5?light:1-light;
-
-      var newSat = Math.floor((2*sat/(light+sat))*10000)/100;
-      if (!newSat && newSat != 0) {
-        newSat = 0;
-      }
-
-      // [hue, saturation, value]
-      return [
-        hue, //Hue stays the same
-        newSat, //Saturation
-        Math.floor((light+sat)*10000)/100 //Value
-      ]
     },
 
     _getFormulaForHueSlider: function(s, l) {

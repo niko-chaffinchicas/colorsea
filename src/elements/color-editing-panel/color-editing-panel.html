@@ -1,0 +1,194 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../hsv-picker/hsv-picker.html">
+<link rel="import" href="../rgb-picker/rgb-picker.html">
+<link rel="import" href="../cmyk-picker/cmyk-picker.html">
+<link rel="import" href="../hex-input/hex-input.html">
+<link rel="import" href="../hex-input/hex-converter.html">
+
+<dom-module id="color-editing-panel">
+  <template>
+    <style>
+    :host {
+      display: block;
+      max-width: 320px;
+      padding: 30px 40px;
+    }
+
+    hr {
+      margin: 30px -48px 30px -25px;
+      border: none;
+      border-top: 1px solid #D4D4D4;
+    }
+    </style>
+
+    <hex-converter hex="{{ hex }}" rgb="{{ rgb }}"></hex-converter>
+
+    <hsv-picker hsv="{{ hsv }}"></hsv-picker>
+
+    <hr>
+
+    <rgb-picker rgb="{{ rgb }}"></rgb-picker>
+
+    <hr>
+
+    <cmyk-picker cmyk="{{ cmyk }}"></cmyk-picker>
+
+  </template>
+
+  <script src="../../color-space/color-space.js"></script>
+  <script>
+  Polymer({
+    is: 'color-editing-panel',
+    properties: {
+      cmyk: {
+        type: Object,
+        notify: true,
+        value: function() {
+          return {
+            c: 0,
+            m: 0,
+            y: 0,
+            k: 0,
+          }
+        }
+      },
+      rgb: {
+        type: Object,
+        notify: true,
+        value: function() {
+          return {
+            r: 0,
+            g: 0,
+            b: 0,
+          }
+        }
+      },
+      hsv: {
+        type: Object,
+        notify: true,
+        value: function() {
+          return {
+            h: 0,
+            s: 0,
+            v: 0,
+          }
+        }
+      },
+      hex: {
+        type: String,
+        value: "000000",
+        notify: true,
+      },
+      colors: {
+        type: Array,
+        value: function() {
+          return ['hsv', 'rgb', 'cmyk'];
+        }
+      },
+
+      _updating: {
+        type: Boolean,
+        value: false,
+      },
+
+      _updatedCount: {
+        type: Number,
+        value: 0,
+      },
+
+      _isReady: {
+        type: Boolean,
+        value: false
+      }
+    },
+
+    observers: [
+      '_hsvChanged(hsv.*)',
+      '_rgbChanged(rgb.*)',
+      '_cmykChanged(cmyk.*)',
+    ],
+
+    _hsvChanged: function() {
+      // console.log("HSV changed", this.hsv, this._updating);
+      var values = this._colorObjectToArray('hsv');
+      this._onColorChanged('hsv', values);
+
+    },
+
+    _rgbChanged: function() {
+      // console.log("RGB changed", this.rgb, this._updating);
+      // TODO: Need to break the update loop
+      var values = this._colorObjectToArray('rgb');
+      this._onColorChanged('rgb', values);
+    },
+
+    _cmykChanged: function() {
+      // console.log("CMYK changed", this.cmyk, this._updating);
+      var values = this._colorObjectToArray('cmyk');
+      this._onColorChanged('cmyk', values);
+    },
+
+    _onColorChanged: function(color, values) {
+      if (this._isReady) {
+        if (!this._updating) {
+          // console.log("starting update of all colors");
+          this.set('_updating', true);
+          this.set('_updatedCount', 1);
+          this._updateAllColorsFrom(color, values);
+        } else {
+          // console.log("updating is in process");
+          this.set('_updatedCount', this._updatedCount + 1);
+        }
+
+        // console.log(this._updatedCount);
+        if (this.colors && this._updatedCount == this.colors.length) {
+          // console.log("updating is done");
+          this.set('_updatedCount', 0);
+          this.set('_updating', false);
+        }
+      }
+    },
+
+    _colorObjectToArray: function(color) {
+      var self = this;
+      var props = color.split('');
+      var arr = props.map(function(prop) {
+        return self[color][prop];
+      });
+      return arr;
+    },
+
+    _colorArrayToObject: function(color, arr) {
+      var self = this;
+      var props = color.split('');
+      var obj = {};
+      for (var i = 0; i < props.length; i++) {
+        obj[props[i]] = arr[i];
+      }
+      return obj;
+    },
+
+    _updateAllColorsFrom: function(updatedColor, updatedValues) {
+      var self = this;
+      if (this.colors) {
+        // console.log(updatedValues);
+        this.colors.forEach(function(color) {
+          if (color != updatedColor) {
+            // console.log(color, "->", updatedColor);
+            // console.log(colorSpace[updatedColor][color]);
+            var _new = colorSpace[updatedColor][color](updatedValues);
+            _new = _new.map(Math.round);
+            var _obj = self._colorArrayToObject(color, _new);
+            // console.log(_obj);
+            self.set(color, _obj);
+          }
+        });
+      }
+    },
+
+    ready: function() {
+      this.set('_isReady', true);
+    }
+  })
+  </script>
+</dom-module>

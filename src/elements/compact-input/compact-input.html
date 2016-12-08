@@ -1,0 +1,56 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/iron-input/iron-input.html">
+
+<dom-module id="compact-input">
+  <template>
+    <style>
+      input[type="number"],
+      label {
+        font-size: 18px;
+        line-height: 28px;
+        font-weight: bold;
+      }
+
+      input[type="number"] {
+        box-sizing: border-box;
+        color: #595959;
+        width: 64px;
+        height: 28px;
+        text-align: center;
+        border-radius: 3px;
+        border: 1px solid #ccc;
+        margin-bottom: 8px;
+        padding-left: 13px;
+      }
+
+      label {
+        color: #C2C2C2;
+        display: inline-block;
+        width: 20px;
+      }
+    </style>
+    <label>{{ label }}</label>
+    <input is="iron-input" bind-value="{{ value }}" type="number" min="0" max$="{{ max }}" value="0" name="hue">
+  </template>
+  <script>
+  Polymer({
+    is: 'compact-input',
+    properties: {
+      label: {
+        type: String,
+        value: ""
+      },
+      value: {
+        type: Number,
+        value: 0,
+        notify: true,
+        reflectToAttribute: true,
+      },
+      max: {
+        type: Number,
+        value: 100
+      }
+    }
+  })
+  </script>
+</dom-module>

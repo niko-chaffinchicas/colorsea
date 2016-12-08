@@ -1,0 +1,57 @@
+<link rel="import" href="../hex-input/hex-input.html">
+<link rel="import" href="../hex-input/hex-converter.html">
+
+<dom-module id="color-block">
+  <template>
+    <style>
+      :host {
+        position: relative;
+      }
+      hex-input {
+        color: rgba(0, 0, 0, 0.3);
+        font-size: 1.5em;
+        position: absolute;
+        top: 50%;
+        left: 1em;
+        transform: translate(0, -50%);
+      }
+      hex-input[is-dark-color] {
+        color: rgba(255, 255, 255, 0.4);
+      }
+    </style>
+    <hex-input val="{{ hex }}" is-dark-color$="{{ isDarkColor }}"></hex-input>
+    <hex-converter hex="{{ hex }}" rgb="{{ rgb }}"></hex-converter>
+  </template>
+  <script>
+  Polymer({
+    is: 'color-block',
+    properties: {
+      hex: {
+        type: String,
+        notify: true,
+      },
+      rgb: {
+        type: Object,
+      },
+      isDarkColor: {
+        type: Boolean,
+        notify: true,
+        computed: '_isDarkColor(rgb)'
+      }
+    },
+
+    _getRGBArray: function(obj) {
+      return [obj.r, obj.g, obj.b];
+    },
+
+    _getLuminance: function(rgb) {
+      var rgbArr = this._getRGBArray(rgb);
+      return ((rgbArr[0] * 299) + (rgbArr[1] * 587) + (rgbArr[2] * 114)) / 1000;
+    },
+
+    _isDarkColor: function(rgb) {
+      return this._getLuminance(rgb) < 130;
+    }
+  })
+  </script>
+</dom-module>

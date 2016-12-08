@@ -1,0 +1,91 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../color-slider/color-slider.html">
+<link rel="import" href="../compact-input/compact-input.html">
+
+<dom-module id="cmyk-picker">
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+
+    :host:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+
+    color-slider {
+      width: 200px;
+      margin-bottom: 10px;
+      float: left;
+      clear: left;
+      margin-right: 16px;
+    }
+
+    compact-input {
+      display: block;
+    }
+    </style>
+    <color-slider
+      color-space="cmyk"
+      val="{{ cmyk.c }}"
+      formula="{{ _getCMYKFormulaFor('c', cmyk.c, cmyk.m, cmyk.y, cmyk.k) }}"></color-slider>
+    <color-slider
+      color-space="cmyk"
+      val="{{ cmyk.m }}"
+      formula="{{ _getCMYKFormulaFor('m', cmyk.c, cmyk.m, cmyk.y, cmyk.k) }}"></color-slider>
+    <color-slider
+      color-space="cmyk"
+      val="{{ cmyk.y }}"
+      formula="{{ _getCMYKFormulaFor('y', cmyk.c, cmyk.m, cmyk.y, cmyk.k) }}"></color-slider>
+    <color-slider
+      color-space="cmyk"
+      val="{{ cmyk.k }}"
+      formula="{{ _getCMYKFormulaFor('k', cmyk.c, cmyk.m, cmyk.y, cmyk.k) }}"></color-slider>
+
+    <compact-input label="C" value="{{ cmyk.c }}" max="100"></compact-input>
+    <compact-input label="M" value="{{ cmyk.m }}" max="100"></compact-input>
+    <compact-input label="Y" value="{{ cmyk.y }}" max="100"></compact-input>
+    <compact-input label="K" value="{{ cmyk.k }}" max="100"></compact-input>
+  </template>
+
+  <script src="../../color-space/color-space.js"></script>
+  <script>
+  Polymer({
+    is: 'cmyk-picker',
+    properties: {
+      cmyk: {
+        type: Object,
+        notify: true,
+        value: function() {
+          return {
+            c: 0,
+            m: 0,
+            y: 0,
+            k: 0
+          }
+        }
+      }
+    },
+    _getCMYKFormulaFor: function(color, c, m, y, k) {
+      switch (color) {
+        case 'c':
+          return "cmyk($val, $m, $y, $k)".replace('$m', m).replace('$y', y).replace('$k', k);
+          break;
+        case 'm':
+          return "cmyk($c, $val, $y, $k)".replace('$c', c).replace('$y', y).replace('$k', k);
+          break;
+        case 'y':
+          return "cmyk($c, $m, $val, $k)".replace('$c', c).replace('$m', m).replace('$k', k);
+          break;
+        case 'k':
+          return "cmyk($c, $m, $y, $val)".replace('$c', c).replace('$m', m).replace('$y', y);
+          break;
+        default:
+          break;
+      }
+    }
+  })
+  </script>
+</dom-module>

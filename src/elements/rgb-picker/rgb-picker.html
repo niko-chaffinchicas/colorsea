@@ -1,0 +1,73 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../color-slider/color-slider.html">
+<link rel="import" href="../compact-input/compact-input.html">
+
+<dom-module id="rgb-picker">
+  <style>
+  :host {
+    display: block;
+  }
+
+  :host:after {
+    content: "";
+    display: table;
+    clear: both;
+  }
+
+  color-slider {
+    width: 200px;
+    margin-bottom: 10px;
+    float: left;
+    clear: left;
+    margin-right: 16px;
+  }
+
+  compact-input {
+    display: block;
+  }
+
+  </style>
+  <template>
+    <color-slider max="255" formula="{{ _getRGBFormulaFor('r', rgb.r, rgb.g, rgb.b) }}" val="{{ rgb.r }}"></color-slider>
+    <color-slider max="255" formula="{{ _getRGBFormulaFor('g', rgb.r, rgb.g, rgb.b) }}" val="{{ rgb.g }}"></color-slider>
+    <color-slider max="255" formula="{{ _getRGBFormulaFor('b', rgb.r, rgb.g, rgb.b) }}" val="{{ rgb.b }}"></color-slider>
+
+    <compact-input label="R" value="{{ rgb.r }}" max="255"></compact-input>
+    <compact-input label="G" value="{{ rgb.g }}" max="255"></compact-input>
+    <compact-input label="B" value="{{ rgb.b }}" max="255"></compact-input>
+
+  </template>
+  <script>
+  Polymer({
+    is: 'rgb-picker',
+    properties: {
+      rgb: {
+        type: Object,
+        notify: true,
+        value: function() {
+          return {
+            r: 0,
+            g: 0,
+            b: 0
+          }
+        }
+      }
+    },
+    _getRGBFormulaFor: function(color, r, g, b) {
+      switch (color) {
+        case 'r':
+          return "rgb($val, $g, $b)".replace('$b', b).replace('$g', g);
+          break;
+        case 'g':
+          return "rgb($r, $val, $b)".replace('$r', r).replace('$b', b)
+          break;
+        case 'b':
+          return "rgb($r, $g, $val)".replace('$r', r).replace('$g', g);
+          break;
+        default:
+          break;
+      }
+    }
+  })
+  </script>
+</dom-module>

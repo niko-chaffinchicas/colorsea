@@ -1,0 +1,110 @@
+<dom-module id="hex-converter">
+  <script>
+  Polymer({
+    /*
+    Converts hex values to RGB values and vice-versa
+    */
+    is: 'hex-converter',
+    properties: {
+      hex: {
+        type: String,
+        value: "000000",
+        observer: '_hexChanged',
+        notify: true,
+      },
+      rgb: {
+        type: Object,
+        notify: true,
+        value: function() {
+          return {
+            r: 0,
+            g: 0,
+            b: 0
+          }
+        }
+      }
+    },
+    observers: [
+      '_rgbChanged(rgb.*)'
+    ],
+
+    _hexChanged: function(val) {
+      // console.log("Hex changed to", val);
+      var _rgbArr = this._hexToRgbColor(val);
+      var output = {
+        r: _rgbArr[0],
+        g: _rgbArr[1],
+        b: _rgbArr[2]
+      }
+
+      if (!this._objectsAreEqual(this.rgb, output)) {
+        // console.log("Setting RGB to", output);
+        this.set('rgb', output);
+      }
+    },
+
+    _rgbChanged: function() {
+      // console.log("RGB changed to", this.rgb);
+      var keys = ['r', 'g', 'b'];
+      var _rgbArr = [];
+      for (var i = 0; i < keys.length; i++) {
+        _rgbArr.push(this.rgb[keys[i]]);
+      }
+      var output = this._rgbToHexColor(_rgbArr);
+
+      if (this.hex != output) {
+        // console.log("Setting hex to", output);
+        this.set('hex', output);
+      }
+    },
+
+    _objectsAreEqual: function(obj1, obj2) {
+      for (key in obj1) {
+        if (!obj2.hasOwnProperty(key) || obj1[key] != obj2[key]) {
+          return false;
+        }
+      }
+      return true;
+    },
+
+    _fillHex: function(string){
+      for (var i=0; i<6; i++) {
+        string = string.replace(string[i], string[i] + string[i]);
+        i++;
+      }
+      return string;
+    },
+
+    _decimalToHex: function(decimal, digits) {
+      digits = digits || 2;
+      var h = decimal.toString(16);
+      while (h.length < digits) {
+        h = "0" + h;
+      }
+      return h
+    },
+
+    _rgbToHexColor: function(rgbColor) {
+      var hexColor = [];
+      for (var i=0; i<rgbColor.length; i++) {
+        hexColor.push(this._decimalToHex(rgbColor[i]));
+      }
+      var string = hexColor.join('');
+      return string;
+    },
+
+    _hexToRgbColor: function(hexColor) {
+      var rgbColor = [];
+      if (hexColor.length == 3) {
+        hexColor = this._fillHex(hexColor);
+      }
+      for (var i=0; i<6; i++) {
+        var val = parseInt(hexColor[i] + hexColor[i+1], 16);
+        rgbColor.push(val);
+        i++;
+      }
+      return rgbColor;
+    }
+  })
+  </script>
+</dom-module>

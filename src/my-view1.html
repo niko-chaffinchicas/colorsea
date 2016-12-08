@@ -10,16 +10,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="shared-styles.html">
-<link rel="import" href="elements/color-picker/color-picker.html">
-<link rel="import" href="elements/color-slider/color-slider.html">
+<link rel="import" href="elements/color-editing-panel/color-editing-panel.html">
 
 <dom-module id="my-view1">
   <template>
     <style include="shared-styles">
       :host {
         display: block;
-
         padding: 10px;
+      }
+
+      .color-block {
+        display: inline-block;
+        width: 100px;
+        height: 100px;
+        cursor: pointer;
       }
     </style>
 
@@ -29,11 +34,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <p>Ut labores minimum atomorum pro. Laudem tibique ut has.
       <p>Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Lorem ipsum dolor sit amet, per in nusquam nominavi periculis, sit elit oportere ea.Cu mei vide viris gloriatur, at populo eripuit sit.</p>
 
-      <color-picker></color-picker>
+      <template is="dom-repeat" items="{{ colors }}" as="color" index-as="i">
+        <div
+          color-index="{{ i }}"
+          on-tap="_onColorBlockTap"
+          class="color-block"
+          style$="background-color: #{{ color }};"></div>
+      </template>
 
-      <color-slider max="255" formula="{{ _getRGBFormulaFor('r', r, g, b) }}" val="{{ r }}"></color-slider>
-      <color-slider max="255" formula="{{ _getRGBFormulaFor('g', r, g, b) }}" val="{{ g }}"></color-slider>
-      <color-slider max="255" formula="{{ _getRGBFormulaFor('b', r, g, b) }}" val="{{ b }}"></color-slider>
+      <color-editing-panel hex="{{ _editingColor }}"></color-editing-panel>
     </div>
   </template>
 
@@ -41,34 +50,41 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     Polymer({
       is: 'my-view1',
       properties: {
-        r: {
-          type: Number,
-          value: 0
+        colors: {
+          type: Array,
+          notify: true,
+          value: function() {
+            return [
+              '000000',
+              '0f0faf',
+              '662211'
+            ]
+          }
         },
-        g: {
-          type: Number,
-          value: 0
+        _editingColor: {
+          type: String,
+          observer: '_editingColorChanged'
         },
-        b: {
+        _editingIndex: {
           type: Number,
-          value: 0
+          value: 0,
+          observer: '_editingIndexChanged'
         },
       },
-      _getRGBFormulaFor: function(color, r, g, b) {
-        switch (color) {
-          case 'r':
-            return "rgb($val, $g, $b)".replace('$b', b).replace('$g', g);
-            break;
-          case 'g':
-            return "rgb($r, $val, $b)".replace('$r', r).replace('$b', b)
-            break;
-          case 'b':
-            return "rgb($r, $g, $val)".replace('$r', r).replace('$g', g);
-            break;
-          default:
-            break;
-        }
-      }
+      _onColorBlockTap: function(e, detail) {
+        var target = Polymer.dom(e).localTarget;
+        var i = target.getAttribute('color-index');
+        this.set('_editingIndex', target.colorIndex);
+      },
+      _editingIndexChanged: function(i) {
+        this.set('_editingColor', this.colors[i]);
+      },
+      _editingColorChanged: function(val) {
+        this.set(['colors', this._editingIndex], val);
+        var colors = this.colors;
+        this.set('colors', []);
+        this.set('colors', colors);
+      },
     });
   </script>
 </dom-module>

@@ -13,6 +13,8 @@
 const path = require('path');
 const gulp = require('gulp');
 const gulpif = require('gulp-if');
+const webpack = require('gulp-webpack');
+const rename = require('gulp-rename');
 
 // Got problems? Try logging 'em
 // const logging = require('plylog');
@@ -71,6 +73,13 @@ function dependencies() {
   return project.splitDependencies()
     .pipe(project.rejoin());
 }
+
+gulp.task('bundle-color-space', function() {
+  return gulp.src('./src/color-space/import.js')
+    .pipe(webpack())
+    .pipe(rename('color-space.js'))
+    .pipe(gulp.dest('./src/color-space'))
+});
 
 // Clean the build directory, split all source and dependency files into streams
 // and process them, and output bundled and unbundled versions of the project

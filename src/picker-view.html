@@ -1,0 +1,160 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="shared-styles.html">
+<link rel="import" href="elements/color-editing-panel/color-editing-panel.html">
+<link rel="import" href="elements/color-block/color-block.html">
+
+<dom-module id="picker-view">
+  <template>
+    <style include="shared-styles">
+      .color-block-wrapper {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
+
+      color-block {
+        position: absolute;
+        height: 25%;
+        width: 100%;
+        top: 0;
+        left: 0;
+        cursor: pointer;
+      }
+
+      .panel-wrapper {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        background-color: white;
+        overflow-y: auto;
+      }
+
+      color-editing-panel {
+        width: 305px;
+      }
+
+      .color-block-pointer {
+        position: absolute;
+        width: 0;
+        height: 0;
+        top: 0;
+        right: 385px;
+        border-top: 2em solid transparent;
+        border-bottom: 2em solid transparent;
+        border-right: 1em solid white;
+        transform: translate(0, -50%);
+        transition: top 0.15s ease;
+        z-index: 10;
+      }
+    </style>
+
+    <div class="color-block-wrapper">
+      <div class="color-block-pointer" style$="top: {{ _getPointerOffset(_editingIndex) }};"></div>
+      <template is="dom-repeat" items="{{ colors }}" as="color" index-as="i">
+        <color-block
+          color-index="{{ i }}"
+          on-tap="_onColorBlockTap"
+          on-focus="_onColorBlockFocus"
+          class="color-block"
+          hex="{{ color }}"
+          style$="top: {{ _getBlockOffset(i) }}; height: {{ _getBlockWidth(colors) }}; background-color:#{{ color }};"></color-block>
+      </template>
+    </div>
+
+    <div class="panel-wrapper">
+      <color-editing-panel hex="{{ _editingColor }}"></color-editing-panel>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'picker-view',
+      properties: {
+        colors: {
+          type: Array,
+          notify: true,
+          value: function() {
+            return [
+              'cbf9da',
+              '3dd2cc',
+              '3e6b89',
+              '122d42'
+            ]
+          }
+        },
+        _editingColor: {
+          type: String,
+          observer: '_editingColorChanged'
+        },
+        _editingIndex: {
+          type: Number,
+          value: 0,
+          observer: '_editingIndexChanged'
+        },
+      },
+
+      listeners: {
+        'hex-changed': '_onHexChanged'
+      },
+
+      _getBlockOffset: function(i) {
+        return (100 / this.colors.length * i) + "%";
+      },
+
+      _getPointerOffset: function(i) {
+        return this._getBlockOffset(i+0.5);
+      },
+
+      _getBlockWidth: function(colors) {
+        return (100 / colors.length) + "%";
+      },
+
+      _onColorBlockFocus: function(e) {
+        var target = Polymer.dom(e).localTarget;
+        if (target.nodeName.toLowerCase() == "color-block" && target.hasOwnProperty("colorIndex")) {
+          this.set('_editingIndex', target.colorIndex);
+        }
+      },
+
+      _onHexChanged: function(e) {
+        var target = Polymer.dom(e).rootTarget;
+        if (target.nodeName.toLowerCase() == "color-block" && target.hasOwnProperty("colorIndex")) {
+          this.set('_editingIndex', target.colorIndex);
+          if (this._editingColor != target.hex) {
+            this.set('_editingColor', target.hex);
+          }
+        }
+      },
+
+      _onColorBlockTap: function(e, detail) {
+        var target = Polymer.dom(e).localTarget;
+        var i = target.getAttribute('color-index');
+        this.set('_editingIndex', target.colorIndex);
+      },
+
+      _editingIndexChanged: function(i) {
+        this.set('_editingColor', this.colors[i]);
+      },
+
+      _editingColorChanged: function(val) {
+        this.set(['colors', this._editingIndex], val);
+        var colors = this.colors;
+        this.set('colors', []);
+        this.set('colors', colors);
+      },
+    });
+  </script>
+</dom-module>

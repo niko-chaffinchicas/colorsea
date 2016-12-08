@@ -1,0 +1,100 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/iron-input/iron-input.html">
+
+<dom-module id="hex-input">
+  <template>
+    <style>
+    :host {
+      line-height: 1.5em;
+    }
+    input,
+    label {
+      cursor: pointer;
+    }
+    input {
+      font-size: inherit;
+      line-height: inherit;
+      font-family: inherit;
+      color: inherit;
+      background: transparent;
+      border: none;
+      -webkit-outline: none;
+      outline: none;
+      width: 4.4em;
+    }
+    input:focus {
+      background: rgba(0,0,0,0.1);
+    }
+    </style>
+
+    <label for="hex">#</label><input
+      is="iron-input"
+      on-focus="_setEditing"
+      on-blur="_setEditing"
+      bind-value="{{ _input }}"
+      type="string"
+      maxlength="6"
+      id="hex"
+      name="hex">
+  </template>
+  <script>
+  Polymer({
+    is: 'hex-input',
+    properties: {
+      val: {
+        type: String,
+        observer: '_valChanged',
+        notify: true,
+      },
+      _input: {
+        type: String,
+        value: "000000",
+        observer: '_inputChanged'
+      },
+      _editing: {
+        type: Boolean,
+        value: false,
+      }
+    },
+
+    _fillHex: function(string){
+      for (var i=0; i<6; i++) {
+        string = string.replace(string[i], string[i] + string[i]);
+        i++;
+      }
+      return string;
+    },
+
+    _isValidHex: function(val) {
+      return (val.length == 6 && val.match(/[A-Fa-f0-9]{6}/g));
+    },
+
+    _valChanged: function(val) {
+      if (this._input != val && !this._editing) {
+        this.set('_input', val);
+      }
+    },
+
+    _inputChanged: function(val) {
+      if (val.length == 3) {
+        val = this._fillHex(val);
+      }
+
+      if (this._isValidHex(val)) {
+        this.set('val', val);
+      }
+    },
+
+    _setEditing: function(e) {
+      this.set('_editing', !this._editing);
+      if (!this._editing && this._input != this.val) {
+        this.set('_input', this.val);
+      }
+    },
+
+    _test: function() {
+      this.set('val', '0022ff');
+    }
+  })
+  </script>
+</dom-module>
