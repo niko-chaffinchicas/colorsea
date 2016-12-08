@@ -1,0 +1,165 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+
+<dom-module id="color-slider">
+  <template>
+    <style>
+      :host {
+        display: block;
+        width: 300px;
+        padding: 5px 0;
+      }
+
+      .slider-gradient,
+      .slider-picker {
+        cursor: pointer;
+      }
+
+      .slider-gradient {
+        height: 30px;
+        position: relative;
+      }
+
+      .slider-picker {
+        position: absolute;
+        top: -2px;
+        left: 0;
+        transform: translate(-50%, 0);
+        width: 10px;
+        height: 30px;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2), 0 0 5px rgba(0, 0, 0, 0.1), 0 0 1px rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+      }
+    </style>
+    <div on-track="_handleTrack" id="sliderGradient" style$="background-image: {{ _gradient }};" class="slider-gradient">
+      <div id="picker" class="slider-picker" style$="background-color: {{ _selected }}; left: {{ _left }};"></div>
+    </div>
+  </template>
+  <script>
+  Polymer({
+    is: 'color-slider',
+
+    properties: {
+      /*
+      The singular property the slider changes. In the case of HSL, this might
+      be the "hue" property.
+      */
+      val: {
+        type: Number,
+        value: 0,
+        notify: true
+      },
+      /*
+      The minimum and maximum values for the range slider.
+      */
+      min: {
+        type: Number,
+        value: 0
+      },
+      max: {
+        type: Number,
+        value: 100
+      },
+      /*
+      The amount to step in setting the values for the gradient
+      */
+      step: {
+        type: Number,
+        value: 15
+      },
+      /*
+      The forumla for setting the background gradient for the slider, with `$val`
+      being the dynamic property. For example, if the slider is computing an
+      RGB color with "blue" equal to 100, "green" equal to 150, and changing the
+      "red" property, the formula would be:
+
+      "rgb($val, 100, 150)"
+      */
+      formula: {
+        type: String,
+        reflectToAttribute: true,
+        value: "rgb($val, 0, 0)",
+        notify: true,
+      },
+      /*
+      The currently selected color.
+      */
+      _selected: {
+        type: String,
+        computed: '_getSelectedColor(val, formula)'
+      },
+
+      /*
+      The computed left position of the slider picker.
+      */
+      _left: {
+        type: String,
+        computed: '_getXPos(val, min, max)'
+      },
+
+      /*
+      The gradient background of the slider track.
+      */
+      _gradient: {
+        type: String,
+        computed: '_generateBackgroundGradient(min, max, step, formula)'
+      }
+    },
+
+    _generateBackgroundGradient: function(min, max, step, formula) {
+      var _current = min;
+      var _output = "linear-gradient(to right, ";
+
+      while (_current <= max) {
+        var _percent = Math.floor(_current / max * 1000) / 10;
+        _output += " " + formula.replace('$val', _current) + " $p%,".replace('$p', _percent);
+        _current += step;
+      }
+      if (_current != max) {
+        _output += " " + formula.replace('$val', max) + " 100%";
+      }
+      _output += ")";
+      return _output;
+    },
+
+    _getSelectedColor: function(val, formula) {
+      return formula.replace('$val', val);
+    },
+
+    _getXPos: function(val, min, max) {
+      return (Math.floor((val - min) / (max - min) * 1000) / 10) + "%";
+    },
+
+    _handleTrack: function(e, detail) {
+      switch (detail.state) {
+        case 'start':
+        case 'track':
+          this._onTouchXChange(detail.x);
+          break;
+        case 'end':
+          break;
+        default:
+
+      }
+    },
+
+    _onTouchXChange(clientX) {
+      var rect = this.$.sliderGradient.getBoundingClientRect();
+      var width = rect.right - rect.left;
+      var touchX = clientX - rect.left;
+      if (touchX < 0) {
+        touchX = 0;
+      } else if (touchX > width) {
+        touchX = width;
+      }
+      var _output = Math.floor(touchX / width * this.max) - this.min;
+      this.set('val', _output);
+    },
+
+    ready: function() {
+      var gradient = this._generateBackgroundGradient(this.min, this.max, this.step, this.formula);
+      this.$.sliderGradient.style.backgroundImage = gradient;
+    }
+  })
+  </script>
+</dom-module>

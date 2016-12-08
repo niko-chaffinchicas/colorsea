@@ -1,0 +1,324 @@
+<link rel="import" href="../../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../../bower_components/iron-input/iron-input.html">
+<link rel="import" href="../color-slider/color-slider.html">
+
+
+<dom-module id="color-picker">
+  <template>
+    <style>
+    :host {
+      display: block;
+      font-family: sans-serif;
+      padding: 30px;
+      width: 300px;
+    }
+
+    .color-block {
+      width: 100%;
+      height: 0;
+      padding-bottom: 100%;
+      background-image: linear-gradient(to right, #fff, #f00);
+      position: relative;
+      cursor: pointer;
+    }
+    .color-block:after {
+      content: "";
+      display: block;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background-image: linear-gradient(transparent, black);
+    }
+
+    input[type="range"] {
+      margin-left: 0;
+      width: 100%;
+    }
+
+    input[type="number"] {
+      width: 60px;
+    }
+
+    label {
+      font-weight: bold;
+    }
+
+    :host, input {
+      font-size: 14px;
+    }
+
+    .selected-color-block {
+      margin-top: 20px;
+      width: 300px;
+      height: 50px;
+      background-color: white;
+    }
+
+    .color-picker {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+      background-color: white;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+
+    </style>
+
+    <div on-track="_handleTouch" id="block" class="color-block">
+      <div id="picker" class="color-picker"></div>
+    </div>
+
+    <!-- <input is="iron-input" bind-value="{{hsl.h}}" type="range" min="0" max="360" value="0" name="hue_slider"> -->
+    <color-slider val="{{ hsl.h }}" max="360" formula="{{ _getFormulaForHueSlider(hsl.s, hsl.l) }}"></color-slider>
+    <br>
+
+    <label>H: </label>
+    <input is="iron-input" bind-value="{{hsl.h}}" type="number" min="0" max="360" value="0" name="hue">
+    &nbsp;
+    <label>S: </label>
+    <input is="iron-input" bind-value="{{hsl.s}}" type="number" min="0" max="100" value="0" name="saturation">
+    &nbsp;
+    <label>L: </label>
+    <input is="iron-input" bind-value="{{hsl.l}}" type="number" min="0" max="100" value="100" name="lightness">
+
+    <br>
+
+    <div class="selected-color-block">
+    </div>
+  </template>
+  <script>
+  Polymer({
+    is: 'color-picker',
+
+    properties: {
+      /*
+      Stores an HSL definition of the color currently being picked.
+      */
+      hsl: {
+        type: Object,
+        value: function() {
+          return {
+            h: 0,
+            s: 100,
+            l: 100
+          }
+        }
+      },
+      /*
+      The last value of the hsl object before the current one, used to check if
+      any methods need to be run (if anything changed).
+      */
+      _last: {
+        type: Object,
+      },
+      /*
+      The limits of the hue, saturation, and lightness properties of the HSL
+      color.
+      */
+      _limits: {
+        type: Object,
+        value: {
+          h: {
+            min: 0,
+            max: 360
+          },
+          s: {
+            min: 0,
+            max: 100
+          },
+          l: {
+            min: 0,
+            max: 100
+          }
+        }
+      }
+    },
+
+    observers: [
+      '_hslChanged(hsl.h, hsl.s, hsl.l)'
+    ],
+
+    _hslChanged: function(h, s, l) {
+      for (var key in this.hsl) {
+        this.hsl[key] = parseInt(this.hsl[key]);
+        if (this._limits) {
+          if (this.hsl[key] > this._limits[key].max) {
+            this.set(['hsl', key], this._limits[key].max);
+          } else if (this.hsl[key] < this._limits[key].min) {
+            this.set(['hsl', key], this._limits[key].min);
+          }
+        }
+      }
+
+      if (this.hsl && this._last) {
+        // Do whatever is necessary before storing the `_last` values of the hsl
+        if (this.hsl.h != this._last.h) {
+          this._setBlockHue(this.hsl.h);
+        }
+
+        if (this.hsl.s != this._last.s || this.hsl.l != this._last.l) {
+          var coords = this._getCoordsFromSaturationAndLightness(this.hsl.s, this.hsl.l);
+          this._setPickerPosition(coords.x, coords.y);
+        }
+
+        this._setPickerColor(this.hsl);
+
+        // Replace the stores values of `_last`
+        this.set('_last', JSON.parse(JSON.stringify(this.hsl)));
+      }
+    },
+
+    /*
+    Updates the first layer of the gradient background for the color picker area
+    to make sure the hue in the gradient block matches the value chosen for hue.
+    */
+    _setBlockHue: function(h) {
+      var bgColor = "hsl($h, 100%, 50%)".replace('$h', h);
+      var bgGradient = "linear-gradient(to right, #fff, $color)".replace('$color', bgColor);
+      this.$.block.style.backgroundImage = bgGradient;
+    },
+
+    _getCoordsFromSaturationAndLightness: function(s, l) {
+      var hsv = this.hsl2hsv(0, s, l);
+      var newSat = parseInt(hsv[1]),
+          newLight = parseInt(hsv[2]);
+
+      for (var i = 0; i < 2; i++) {
+        var prop = [newSat, newLight][i];
+        if (prop < 0) {
+          prop = 0;
+        } else if (prop > 100) {
+          prop = 100;
+        }
+      }
+      return {
+        x: newSat,
+        y: 100 - newLight
+      }
+    },
+
+    /*
+    Updates the color picker "crosshair"'s position, where `x` and `y` are
+    numbers between 0 and 100.
+    */
+    _setPickerPosition: function(x, y) {
+      this.$.picker.style.top = y + "%";
+      this.$.picker.style.left = x + "%";
+    },
+
+    /*
+    Updates the color picker's center fill color.
+    */
+    _setPickerColor: function(hsl) {
+      var bgColor = "hsl($h, $s%, $l%)"
+        .replace('$h', hsl.h)
+        .replace('$s', hsl.s)
+        .replace('$l', hsl.l)
+      this.$.picker.style.backgroundColor = bgColor;
+    },
+
+    _onCoordMove: function(clientX, clientY) {
+      var rect = this.$.block.getBoundingClientRect();
+      var width = rect.right - rect.left;
+      var height = rect.bottom - rect.top;
+      var mouseX = clientX - rect.left;
+      if (mouseX > width) {
+        mouseX = width;
+      } else if (mouseX < 0) {
+        mouseX = 0;
+      }
+      var mouseY = clientY - rect.top;
+      if (mouseY > height) {
+        mouseY = height;
+      } else if (mouseY < 0) {
+        mouseY = 0;
+      }
+      var x = Math.floor(mouseX / width * 100);
+      var y = Math.floor(mouseY / height * 100);
+
+      this.$.picker.style.top = y + "%";
+      this.$.picker.style.left = x + "%";
+
+      var _hslArr = this.hsv2hsl(0, x, 100 - y);
+
+      this.set("hsl.s", _hslArr[1]);
+      this.set("hsl.l", _hslArr[2]);
+    },
+
+    _handleTouch: function(e, detail) {
+      switch (detail.state) {
+        case 'start':
+        case 'track':
+        this._onCoordMove(detail.x, detail.y);
+          break;
+        case 'end':
+          break;
+        default:
+
+      }
+      this._onCoordMove(detail.x, detail.y);
+    },
+
+    hsv2hsl: function(hue, sat, val){
+      sat = sat / 100; // convert from 0-100 to 0-1
+      val = val / 100; // convert from 0-100 to 0-1
+
+      // Saturation is very different between the two color spaces
+      // If (2-sat)*val < 1 set it to sat*val/((2-sat)*val)
+      // Otherwise sat*val/(2-(2-sat)*val)
+      // Conditional is not operating with hue, it is reassigned!
+      var h;
+      var newSat = Math.floor((sat*val/((h=(2-sat)*val)<1?h:2-h))*10000)/100;
+      // If newSaturation is NaN (due to division by 0), make it 0
+      if (!newSat && newSat != 0) {
+        newSat = 0;
+      }
+      // Lightness is (2-sat)*val/2
+      // See reassignment of h above
+      var newLight = Math.floor((h/2)*10000)/100;
+      //[hue, saturation, lightness]
+      return [
+        hue,
+        newSat,
+        newLight
+      ];
+    },
+
+    hsl2hsv: function(hue,sat,light){
+      sat = sat / 100; // convert from 0-100 to 0-1
+      light = light / 100; // convert from 0-100 to 0-1
+
+      sat*=light<.5?light:1-light;
+
+      var newSat = Math.floor((2*sat/(light+sat))*10000)/100;
+      if (!newSat && newSat != 0) {
+        newSat = 0;
+      }
+
+      // [hue, saturation, value]
+      return [
+        hue, //Hue stays the same
+        newSat, //Saturation
+        Math.floor((light+sat)*10000)/100 //Value
+      ]
+    },
+
+    _getFormulaForHueSlider: function(s, l) {
+      // return "hsl($val, $s%, $l%)".replace('$s', s).replace('$l', l);
+      return "hsl($val, 100%, 50%)";
+    },
+
+    ready: function() {
+      this.set('_last', JSON.parse(JSON.stringify(this.hsl)));
+    }
+  })
+  </script>
+</dom-module>
