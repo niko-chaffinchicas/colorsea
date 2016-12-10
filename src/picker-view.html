@@ -63,14 +63,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="color-block-wrapper">
       <div class="color-block-pointer" style$="top: {{ _getPointerOffset(_editingIndex) }};"></div>
-      <template is="dom-repeat" items="{{ colors }}" as="color" index-as="i">
+      <template is="dom-repeat" items="{{ colorObjects }}" as="color" index-as="i">
         <color-block
           color-index="{{ i }}"
+          color-id="{{ color._id }}"
           on-tap="_onColorBlockTap"
           on-focus="_onColorBlockFocus"
           class="color-block"
-          hex="{{ color }}"
-          style$="top: {{ _getBlockOffset(i) }}; height: {{ _getBlockWidth(colors) }}; background-color:#{{ color }};"></color-block>
+          hex="{{ color.hex }}"
+          style$="top: {{ _getBlockOffset(i) }}; height: {{ _getBlockWidth(colors) }}; background-color:#{{ color.hex }};"></color-block>
       </template>
     </div>
 
@@ -95,6 +96,30 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             ]
           }
         },
+        colorObjects: {
+          type: Array,
+          notify: true,
+          value: function() {
+            return [
+              {
+                _id: '123',
+                hex: 'cbf9da',
+              },
+              {
+                _id: '234',
+                hex: '3dd2cc',
+              },
+              {
+                _id: '345',
+                hex: '3e6b89',
+              },
+              {
+                _id: '456',
+                hex: '122d42',
+              }
+            ]
+          }
+        },
         _editingColor: {
           type: String,
           observer: '_editingColorChanged'
@@ -104,6 +129,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           value: 0,
           observer: '_editingIndexChanged'
         },
+        _editingId: {
+          type: String,
+          value: '123',
+          observer: '_editingIdChanged'
+        }
       },
 
       listeners: {
@@ -124,29 +154,57 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _onColorBlockFocus: function(e) {
         var target = Polymer.dom(e).localTarget;
-        if (target.nodeName.toLowerCase() == "color-block" && target.hasOwnProperty("colorIndex")) {
-          this.set('_editingIndex', target.colorIndex);
+        if (target.nodeName.toLowerCase() == "color-block" && target.hasOwnProperty("colorId")) {
+          this.set('_editingIndex', target.colorId);
         }
       },
 
       _onHexChanged: function(e) {
+        // console.log(e);
         var target = Polymer.dom(e).rootTarget;
-        if (target.nodeName.toLowerCase() == "color-block" && target.hasOwnProperty("colorIndex")) {
-          this.set('_editingIndex', target.colorIndex);
+        console.log("hex changed:", target.hex, target);
+        if (target.nodeName.toLowerCase() == "color-block" && target.hasOwnProperty("colorId")) {
+          this.set('_editingId', target.colorId);
           if (this._editingColor != target.hex) {
             this.set('_editingColor', target.hex);
           }
+        } else if (target.nodeName.toLowerCase() == "color-editing-panel" && this.colorObjects) {
+          console.log("change came from color-editing-panel");
+          for (var i = 0; i < this.colorObjects.length; i++) {
+            if (this.colorObjects[i]._id == this._editingId) {
+              color = this.colorObjects[i];
+              break;
+            }
+          }
+          this.set(['colorObjects', i, 'hex'], this._editingColor);
+          // color.hex = this._editingColor;
+          console.log(this.colorObjects);
         }
       },
 
       _onColorBlockTap: function(e, detail) {
         var target = Polymer.dom(e).localTarget;
-        var i = target.getAttribute('color-index');
-        this.set('_editingIndex', target.colorIndex);
+        console.log(target);
+        // this.set('_editingIndex', target.colorIndex);
+        this.set('_editingId', target.colorId);
       },
 
       _editingIndexChanged: function(i) {
-        this.set('_editingColor', this.colors[i]);
+        // console.log("editing index changed:", i);
+        // this.set('_editingColor', this.colors[i]);
+      },
+
+      _editingIdChanged: function(id) {
+        // console.log("editing id changed:", id);
+        var color;
+        for (var i = 0; i < this.colorObjects.length; i++) {
+          if (this.colorObjects[i]._id == id) {
+            color = this.colorObjects[i];
+            break;
+          }
+        }
+        this.set('_editingColor', color.hex);
+        this.set('_editingIndex', i);
       },
 
       _editingColorChanged: function(val) {
@@ -155,6 +213,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.set('colors', []);
         this.set('colors', colors);
       },
+
+      ready: function() {
+        // this.set('_editingIndex', this.colorObjects[0]._id);
+      }
     });
   </script>
 </dom-module>

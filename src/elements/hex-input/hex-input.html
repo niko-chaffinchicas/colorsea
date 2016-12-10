@@ -76,7 +76,7 @@
     },
 
     _inputChanged: function(val) {
-      if (val.length == 3) {
+      if (val && val.length == 3) {
         val = this._fillHex(val);
       }
 
