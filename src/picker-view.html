@@ -189,10 +189,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       _editingColorChanged: function(val) {
-        this.set(['colors', this._editingIndex], val);
-        var colors = this.colors;
-        this.set('colors', []);
-        this.set('colors', colors);
+        // console.log(val);
+        this.set(['colorObjects', this._editingIndex, 'hex'], val);
+        // var colors = this.colors;
+        // this.set('colors', []);
+        // this.set('colors', colors);
       },
 
       _randomizeHexColors: function(num) {
