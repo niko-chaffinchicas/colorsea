@@ -34,6 +34,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         cursor: pointer;
       }
 
+      color-block[randomizing] {
+        transition: background-color 0.15s ease;
+      }
+
       .panel-wrapper {
         position: absolute;
         top: 0;
@@ -74,6 +78,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           on-focus="_onColorBlockFocus"
           class="color-block"
           hex="{{ color.hex }}"
+          randomizing="{{ _randomizing }}"
           style$="top: {{ _getBlockOffset(i) }}; height: {{ _getBlockWidth(colorObjects) }}; background-color:#{{ color.hex }};"></color-block>
       </template>
     </div>
@@ -144,6 +149,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _onHexChanged: function(e) {
         var target = Polymer.dom(e).rootTarget;
+        // console.log(target);
         if (target.nodeName.toLowerCase() == "color-block" && target.hasOwnProperty("colorId")) {
           if (this._randomizing && target.colorId != this._editingId) {
             return;
@@ -204,7 +210,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             var v = Math.floor((Math.random() * 255));
             rgb.push(v);
           }
-          rgb = rgb.reduce(function(a, b) { return a + b.toString('16')}, "");
+          rgb = rgb.reduce(function(a, b) {
+            _b = b.toString('16');
+            if (_b.length == 1) {
+              _b = "0" + _b;
+            }
+            // if (_b.match("NaN")) {
+            //   console.log("not a number:", b, _b);
+            // }
+            return a + _b;
+          }, "");
           var d = new Date().getTime();
           var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
               var r = (d + Math.random()*16)%16 | 0;
@@ -217,13 +232,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       _spacePressed: function(e) {
-        console.log("space pressed", e);
+        // console.log("space pressed", e);
+        var self = this;
+        window.clearTimeout(self._randomizingTimeout);
         this.set('_randomizing', true);
         var randomColors = this._randomizeHexColors(4);
         for (var i = 0; i < randomColors.length; i++) {
           this.set(['colorObjects', i, 'hex'], randomColors[i].hex);
         }
-        this.set('_randomizing', false);
+        // this.set('_randomizing', false);
+        self._randomizingTimeout = setTimeout(function () {
+          self.set('_randomizing', false);
+        }, 200);
       },
 
       ready: function() {

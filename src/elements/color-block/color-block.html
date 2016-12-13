@@ -31,6 +31,7 @@
       hex: {
         type: String,
         notify: true,
+        observer: '_onHexChanged'
       },
       rgb: {
         type: Object,
@@ -39,6 +40,10 @@
         type: Boolean,
         notify: true,
         computed: '_isDarkColor(rgb)'
+      },
+      randomizing: {
+        type: Boolean,
+        reflectToAttribute: true,
       }
     },
 
@@ -53,6 +58,11 @@
 
     _isDarkColor: function(rgb) {
       return this._getLuminance(rgb) < 130;
+    },
+
+    _onHexChanged: function(val) {
+      // console.log("inner hex val changed", val);
+      this.fire('hex-changed');
     }
   })
   </script>
