@@ -13,6 +13,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/iron-a11y-keys/iron-a11y-keys.html">
 <link rel="import" href="elements/color-editing-panel/color-editing-panel.html">
 <link rel="import" href="elements/color-block/color-block.html">
+<!-- <link rel="import" href="../bower_components/google-signin/google-signin.html"> -->
 
 <dom-module id="picker-view">
   <template>
@@ -84,6 +85,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </div>
 
     <div class="panel-wrapper">
+      <google-signin client-id="135843097633-g1mf96er6e8vrfhb1uvtoqlftkhfm3ec.apps.googleusercontent.com"></google-signin>
       <color-editing-panel hex="{{ _editingColor }}"></color-editing-panel>
     </div>
   </template>
@@ -233,8 +235,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _spacePressed: function(e) {
         // console.log("space pressed", e);
+        e.stopPropagation();
         var self = this;
         window.clearTimeout(self._randomizingTimeout);
+        document.activeElement.blur();
         this.set('_randomizing', true);
         var randomColors = this._randomizeHexColors(4);
         for (var i = 0; i < randomColors.length; i++) {

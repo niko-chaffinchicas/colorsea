@@ -44,12 +44,12 @@
     },
 
     _rgbChanged: function() {
-      // console.log("RGB changed to", this.rgb);
       var keys = ['r', 'g', 'b'];
       var _rgbArr = [];
       for (var i = 0; i < keys.length; i++) {
-        _rgbArr.push(this.rgb[keys[i]]);
+        _rgbArr.push(parseInt(this.rgb[keys[i]]));
       }
+      // console.log("RGB changed to", _rgbArr);
       var output = this._rgbToHexColor(_rgbArr);
 
       if (this.hex != output) {

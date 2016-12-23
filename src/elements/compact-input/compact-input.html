@@ -30,7 +30,7 @@
       }
     </style>
     <label>{{ label }}</label>
-    <input is="iron-input" bind-value="{{ value }}" type="number" min="0" max$="{{ max }}" value="0" name="hue">
+    <input is="iron-input" bind-value="{{ _value }}" type="number" min="0" max$="{{ max }}" value="0" name="hue">
   </template>
   <script>
   Polymer({
@@ -45,10 +45,39 @@
         value: 0,
         notify: true,
         reflectToAttribute: true,
+        observer: '_valueChanged',
+      },
+      _value: {
+        type: Number,
+        value: 0,
+        observer: '__valChanged',
       },
       max: {
         type: Number,
         value: 100
+      }
+    },
+
+    _valueChanged: function(val) {
+      if (this._value !== val) {
+        this.set('_value', val);
+      }
+    },
+
+    __valChanged: function(val) {
+      val = parseInt(val);
+      if (val < 0 || (!val && val !== 0)) {
+        val = 0;
+      }
+      if (val > this.max) {
+        val = this.max;
+      }
+
+      if (val !== this.value) {
+        this.set('value', val);
+      }
+      if (val !== this._value) {
+        this.set('_value', val);
       }
     }
   })
