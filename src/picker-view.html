@@ -175,7 +175,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       _lastColorResponse: function(e, detail) {
-        console.log(detail.response.colors);
+        // console.log(detail.response.colors);
         this.set('colorObjects', JSON.parse(JSON.stringify(detail.response.colors)));
         this.set('_last', JSON.parse(JSON.stringify(detail.response.colors)));
         this.async(function() {
@@ -185,7 +185,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       _updatedColorResponse: function(e, detail) {
-        console.log("color changes saved");
+        // console.log("color changes saved");
       },
 
       _getBlockOffset: function(i) {
@@ -275,9 +275,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             if (_b.length == 1) {
               _b = "0" + _b;
             }
-            // if (_b.match("NaN")) {
-            //   console.log("not a number:", b, _b);
-            // }
             return a + _b;
           }, "");
           var d = new Date().getTime();
@@ -329,7 +326,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             }
             var self = this;
             var _timeout = this.async(function() {
-              console.log("the color scheme has changed");
+              // console.log("the color scheme has changed");
               this.$.colorSchemeAjax.body = JSON.stringify({ colors: this.colorObjects });
               this.$.colorSchemeAjax.generateRequest();
             }, 500);
