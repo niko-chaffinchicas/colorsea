@@ -9,6 +9,7 @@ function identityMiddleware(req, res, next) {
       _id: user._id,
     };
     res.cookie('colorsea_identity', JSON.stringify(identity), { maxAge: 900000 });
+    res.user = user;
   }
   next();
 }

@@ -2,6 +2,7 @@ var express = require('express');
 var cookieParser = require('cookie-parser');
 var path = require('path');
 var mongoose = require('mongoose');
+var apiHandlers = require('./api/');
 var app = express();
 app.use(cookieParser());
 
@@ -18,6 +19,7 @@ db.once('open', function() {
   var identityMiddleware = require('./middleware/identity');
 
   app.use('/$', identityMiddleware);
+  app.use('/api', identityMiddleware, apiHandlers);
 
   app.use(express.static(path.join(__dirname, "..")));
   // console.log(path.join(__dirname, ".."));
