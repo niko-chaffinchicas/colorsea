@@ -7,3 +7,5 @@ This is a personal project for color editing, specifically with multiple sliders
 npm install
 nf run nodemon server/app.js
 ```
+
+**NOTE:** Make sure that `mongo` is installed and running

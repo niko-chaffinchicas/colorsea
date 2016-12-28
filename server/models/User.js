@@ -2,7 +2,9 @@ var mongoose = require('mongoose');
 var ObjectId = mongoose.Schema.Types.ObjectId;
 
 var userSchema = mongoose.Schema({
-  email: String,
+  email: {
+    type: String,
+  },
   last: {
     type: ObjectId,
     ref: 'ColorScheme'

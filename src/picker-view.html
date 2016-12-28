@@ -13,6 +13,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/iron-a11y-keys/iron-a11y-keys.html">
 <link rel="import" href="elements/color-editing-panel/color-editing-panel.html">
 <link rel="import" href="elements/color-block/color-block.html">
+<link rel="import" href="../bower_components/iron-cookie/iron-cookie.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
 <!-- <link rel="import" href="../bower_components/google-signin/google-signin.html"> -->
 
 <dom-module id="picker-view">
@@ -69,6 +71,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <iron-a11y-keys id="a11y" keys="space" on-keys-pressed="_spacePressed"></iron-a11y-keys>
 
+    <iron-cookie name="colorsea_identity" value="{{ _userCookie }}"></iron-cookie>
+    <iron-ajax
+      auto
+      url="/api/colorschemes/{{ userCookie.last }}"
+      handle-as="json"
+      on-response="_lastColorResponse"></iron-ajax>
+
     <div class="color-block-wrapper">
       <div class="color-block-pointer" style$="top: {{ _getPointerOffset(_editingIndex) }};"></div>
       <template is="dom-repeat" items="{{ colorObjects }}" as="color" index-as="i">
@@ -85,7 +94,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </div>
 
     <div class="panel-wrapper">
-      <google-signin client-id="135843097633-g1mf96er6e8vrfhb1uvtoqlftkhfm3ec.apps.googleusercontent.com"></google-signin>
+      <!-- <google-signin client-id="135843097633-g1mf96er6e8vrfhb1uvtoqlftkhfm3ec.apps.googleusercontent.com"></google-signin> -->
       <color-editing-panel hex="{{ _editingColor }}"></color-editing-panel>
     </div>
   </template>
@@ -123,6 +132,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         _colorLoaded: {
           type: Boolean,
           value: false,
+        },
+        _userCookie: {
+          type: String,
+        },
+        userCookie: {
+          type: Object,
+          computed: '_parseUserCookie(_userCookie)'
         }
       },
 
@@ -136,6 +152,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       listeners: {
         'hex-changed': '_onHexChanged'
+      },
+
+      _parseUserCookie: function(cookie) {
+        var v = JSON.parse(decodeURIComponent(cookie).replace('j:', ''));
+        // console.log(v);
+        return v;
+      },
+
+      _lastColorResponse: function(e, detail) {
+        // console.log(detail.response.colors);
+        this.set('colorObjects', detail.response.colors);
       },
 
       _getBlockOffset: function(i) {
