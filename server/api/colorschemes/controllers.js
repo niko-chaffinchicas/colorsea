@@ -39,7 +39,6 @@ controllers.show = function(req, res) {
 };
 
 controllers.update = function(req, res) {
-  // console.log(req.params.id);
   if (req.params.id) {
     // console.log(req.body);
     ColorScheme.findOneAndUpdate(
