@@ -78,6 +78,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       handle-as="json"
       on-response="_lastColorResponse"></iron-ajax>
 
+    <iron-ajax
+      id="colorSchemeAjax"
+      method="PUT"
+      url="/api/colorschemes/{{ userCookie.last }}"
+      handle-as="json"
+      content-type="application/json"
+      on-response="_updatedColorResponse"></iron-ajax>
+
     <div class="color-block-wrapper">
       <div class="color-block-pointer" style$="top: {{ _getPointerOffset(_editingIndex) }};"></div>
       <template is="dom-repeat" items="{{ colorObjects }}" as="color" index-as="i">
@@ -107,6 +115,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         colorObjects: {
           type: Array,
           notify: true,
+          value: function() {
+            return [];
+          }
+        },
+        _last: {
+          type: Array,
           value: function() {
             return [];
           }
@@ -161,8 +175,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       _lastColorResponse: function(e, detail) {
-        // console.log(detail.response.colors);
-        this.set('colorObjects', detail.response.colors);
+        console.log(detail.response.colors);
+        this.set('colorObjects', JSON.parse(JSON.stringify(detail.response.colors)));
+        this.set('_last', JSON.parse(JSON.stringify(detail.response.colors)));
+        this.async(function() {
+          this.set('_editingId', this.colorObjects[0]._id)
+          this.set('_colorLoaded', true);
+        });
+      },
+
+      _updatedColorResponse: function(e, detail) {
+        console.log("color changes saved");
       },
 
       _getBlockOffset: function(i) {
@@ -287,25 +310,39 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }, 200);
       },
 
+      _colorSchemesEqual: function(colors1, colors2) {
+        for (var i = 0; i < colors1.length; i++) {
+          // console.log(colors1[i].hex, colors2[i].hex);
+          if (colors1[i].hex !== colors2[i].hex) {
+            return false;
+          }
+        }
+        return true;
+      },
+
       _colorSchemeChanged: function() {
         if (this._colorLoaded) {
-          if (this.__changeTimeout) {
-            this.cancelAsync(this.__changeTimeout);
+          if (!this._colorSchemesEqual(this.colorObjects, this._last)) {
+            // console.log("changing colors...");
+            if (this.__changeTimeout) {
+              this.cancelAsync(this.__changeTimeout);
+            }
+            var self = this;
+            var _timeout = this.async(function() {
+              console.log("the color scheme has changed");
+              this.$.colorSchemeAjax.body = JSON.stringify({ colors: this.colorObjects });
+              this.$.colorSchemeAjax.generateRequest();
+            }, 500);
+            this.set('__changeTimeout', _timeout);
           }
-          var self = this;
-          var _timeout = this.async(function() {
-            console.log("the color scheme has changed");
-          }, 500);
-          this.set('__changeTimeout', _timeout);
         }
       },
 
       ready: function() {
         this.$.a11y.target = document.querySelector('body');
-        this.set('colorObjects', this._randomizeHexColors(4));
-        this.set('_editingId', this.colorObjects[0]._id);
-        this.set('_editingIndex', 0);
-        this.set('_colorLoaded', true);
+        // this.set('colorObjects', this._randomizeHexColors(4));
+        // this.set('_editingId', this.colorObjects[0]._id);
+        // this.set('_editingIndex', 0);
       }
     });
   </script>

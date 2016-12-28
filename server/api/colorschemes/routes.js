@@ -5,5 +5,6 @@ var controllers = require('./controllers');
 
 routes.get('/', controllers.index);
 routes.get('/:id', controllers.show);
+routes.put('/:id', controllers.update);
 
 module.exports = routes;
