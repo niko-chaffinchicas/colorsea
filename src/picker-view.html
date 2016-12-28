@@ -119,12 +119,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         _randomizing: {
           type: Boolean,
           value: false,
+        },
+        _colorLoaded: {
+          type: Boolean,
+          value: false,
         }
       },
 
       keyBindings: {
         'space': '_spacePressed'
       },
+
+      observers: [
+        '_colorSchemeChanged(colorObjects.*)'
+      ],
 
       listeners: {
         'hex-changed': '_onHexChanged'
@@ -241,13 +249,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         document.activeElement.blur();
         this.set('_randomizing', true);
         var randomColors = this._randomizeHexColors(4);
+        var _colorObjects = JSON.parse(JSON.stringify(this.colorObjects));
         for (var i = 0; i < randomColors.length; i++) {
-          this.set(['colorObjects', i, 'hex'], randomColors[i].hex);
+          _colorObjects[i].hex = randomColors[i].hex;
         }
+        this.set('colorObjects', _colorObjects);
         // this.set('_randomizing', false);
         self._randomizingTimeout = setTimeout(function () {
           self.set('_randomizing', false);
         }, 200);
+      },
+
+      _colorSchemeChanged: function() {
+        if (this._colorLoaded) {
+          if (this.__changeTimeout) {
+            this.cancelAsync(this.__changeTimeout);
+          }
+          var self = this;
+          var _timeout = this.async(function() {
+            console.log("the color scheme has changed");
+          }, 500);
+          this.set('__changeTimeout', _timeout);
+        }
       },
 
       ready: function() {
@@ -255,6 +278,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.set('colorObjects', this._randomizeHexColors(4));
         this.set('_editingId', this.colorObjects[0]._id);
         this.set('_editingIndex', 0);
+        this.set('_colorLoaded', true);
       }
     });
   </script>
