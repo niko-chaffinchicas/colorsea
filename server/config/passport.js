@@ -54,7 +54,7 @@ module.exports = function(passport) {
       }
     })
     .catch(function(err) {
-      console.log("[error]:", err);
+      // console.log("[error]:", err);
       return done(err, false);
     });
   }));
@@ -63,7 +63,7 @@ module.exports = function(passport) {
   // Local Login
   // ===========================================================================
   passport.use('local-login', new LocalStrategy(localSettings, function(req, email, password, done) {
-    console.log("looking for users...");
+    // console.log("looking for users...");
     User.findOne({ 'local.email': email })
     .then(function(user){
       // If the user doesn't exist
@@ -80,7 +80,7 @@ module.exports = function(passport) {
       return done(null, user);
     })
     .catch(function(err){
-      console.log("[error]:", err);
+      // console.log("[error]:", err);
       return done(err, false);
     })
   }));

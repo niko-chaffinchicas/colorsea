@@ -28,7 +28,7 @@ db.once('open', function() {
   var _models = require('./models/');
 
   var identityMiddleware = require('./middleware/identity');
-  var isSignedIn = require('./middleware/isSignedIn');
+  var auth = require('./middleware/auth');
   var apiHandlers = require('./api/');
 
   app.use(morgan('dev'));
@@ -54,7 +54,7 @@ db.once('open', function() {
   app.get('/login', function(req, res) {
     res.send(req.flash('loginFlash') || "I'm the login page");
   });
-  app.get('/profile', isSignedIn, function(req, res) {
+  app.get('/profile', auth.isSignedIn, function(req, res) {
     res.send("I'm the profile page");
   });
   app.post('/signup', passport.authenticate('local-signup', {

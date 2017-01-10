@@ -38,6 +38,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
     </style>
 
+    <iron-cookie name="colorsea_identity" value="{{ _userCookie }}"></iron-cookie>
+    <iron-ajax
+      auto
+      url="/api/users/{{ userCookie._id }}"
+      handle-as="json"
+      on-response="_profileResponse"></iron-ajax>
     <picker-view></picker-view>
 
   </template>
@@ -51,11 +57,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type: Boolean,
           value: true,
           reflectToAttribute: true,
+        },
+        _userCookie: {
+          type: String,
+        },
+        userCookie: {
+          type: Object,
+          computed: '_parseUserCookie(_userCookie)',
         }
       },
 
       listeners: {
         'allow-scrolling': '_setScrolling'
+      },
+
+      _parseUserCookie: function(cookie) {
+        var v = JSON.parse(decodeURIComponent(cookie).replace('j:', ''));
+        // console.log(v);
+        return v;
+      },
+
+      _profileResponse: function(e, detail) {
+        console.log(e, detail.response);
       },
 
       _showPage404: function() {

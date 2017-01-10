@@ -1,4 +1,6 @@
-function isSignedIn(req, res, next) {
+auth = {}
+
+auth.isSignedIn = function(req, res, next) {
   // If user is authenticated in the session, carry on
   if (req.isAuthenticated()) {
     return next();
@@ -8,4 +10,4 @@ function isSignedIn(req, res, next) {
   res.redirect('/');
 }
 
-module.exports = isSignedIn;
+module.exports = auth;
