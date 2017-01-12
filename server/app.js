@@ -40,8 +40,8 @@ db.once('open', function() {
   app.use(passport.session());
   app.use(flash());
 
-  app.use('/$', identityMiddleware);
-  app.use('/api', identityMiddleware, apiHandlers);
+  // app.use('/$', identityMiddleware);
+  app.use('/api', apiHandlers);
 
   // function logBody(req, res, next) {
   //   console.log(req.body);
@@ -70,7 +70,7 @@ db.once('open', function() {
   app.get('/logout', function(req, res) {
     req.logout();
     res.redirect('/login');
-  })
+  });
 
   app.use(express.static(path.join(__dirname, "..")));
   // console.log(path.join(__dirname, ".."));

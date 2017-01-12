@@ -17,9 +17,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
-<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
-<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html"> -->
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html"> -->
+<link rel="import" href="../bower_components/iron-input/iron-input.html">
+<!-- <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html"> -->
 <link rel="import" href="/src/picker-view.html">
 <link rel="import" href="/src/elements/color-editing-panel/color-editing-panel.html">
 
@@ -30,21 +30,84 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <style>
       :host {
         display: block;
+        width: 100%;
+        height: 100%;
       }
 
       * {
         -webkit-tap-highlight-color: transparent;
         /*-webkit-touch-callout: none;*/
       }
+
+      .layout {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        width: 100%;
+      }
+
+      .layout-header {
+        height: 60px;
+        line-height: 60px;
+        flex-grow: 0;
+        padding: 0 20px;
+        z-index: 200px;
+      }
+
+      .layout-header__title {
+        display: inline-block;
+        margin: 0;
+      }
+
+      .layout-body {
+        flex-grow: 900;
+        position: relative;
+      }
     </style>
 
-    <iron-cookie name="colorsea_identity" value="{{ _userCookie }}"></iron-cookie>
-    <iron-ajax
-      auto
-      url="/api/users/{{ userCookie._id }}"
-      handle-as="json"
-      on-response="_profileResponse"></iron-ajax>
-    <picker-view></picker-view>
+    <div class="layout">
+      <header class="layout-header">
+        <h3 class="layout-header__title">Colorsea</h3>
+
+        <iron-ajax
+          id="loginAjax"
+          method="POST"
+          url="/api/auth/login"
+          content-type="application/json"
+          handle-as="json"
+          with-credentials="true"
+          body="{{ login }}"
+          on-response="_loginResponse"
+          on-error="_loginError"></iron-ajax>
+
+        <iron-ajax
+          auto
+          id="currentAjax"
+          url="/api/auth/current"
+          handle-as="json"
+          with-credentials="true"
+          on-response="_currentResponse"></iron-ajax>
+
+        <iron-ajax
+          id="logoutAjax"
+          url="/api/auth/logout"
+          handle-as="json"
+          with-credentials="true"
+          on-response="_logoutResponse"></iron-ajax>
+
+        <input type="email" is="iron-input" bind-value="{{ login.email }}" placeholder="email">
+        <input type="password" is="iron-input" bind-value="{{ login.password }}" placeholder="password">
+
+        <button on-tap="tryLogin">Login</button>
+        <button on-tap="tryLogout">Logout</button>
+        <button on-tap="getCurrent">Current</button>
+        &nbsp;
+        {{ _user.local.email }} [{{ _user._id }}]
+      </header>
+      <main class="layout-body">
+        <picker-view></picker-view>
+      </main>
+    </div>
 
   </template>
 
@@ -53,32 +116,53 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       is: 'my-app',
 
       properties: {
+        login: {
+          type: Object,
+          value: function() {
+            return {};
+          }
+        },
+
         allowScrolling: {
           type: Boolean,
           value: true,
           reflectToAttribute: true,
         },
-        _userCookie: {
-          type: String,
-        },
-        userCookie: {
-          type: Object,
-          computed: '_parseUserCookie(_userCookie)',
-        }
       },
 
       listeners: {
         'allow-scrolling': '_setScrolling'
       },
 
-      _parseUserCookie: function(cookie) {
-        var v = JSON.parse(decodeURIComponent(cookie).replace('j:', ''));
-        // console.log(v);
-        return v;
+      tryLogin: function() {
+        this.$.loginAjax.generateRequest();
       },
 
-      _profileResponse: function(e, detail) {
-        console.log(e, detail.response);
+      tryLogout: function() {
+        this.$.logoutAjax.generateRequest();
+      },
+
+      getCurrent: function() {
+        this.$.currentAjax.generateRequest();
+      },
+
+      _loginResponse: function(e, detail) {
+        // console.log(detail.response);
+        this.set('login', {});
+        this.set('_user', detail.response);
+      },
+
+      _loginError: function(e, detail) {
+        console.log(detail.response);
+      },
+
+      _logoutResponse: function(e, detail) {
+        this.set('_user', {});
+      },
+
+      _currentResponse: function(e, detail) {
+        // console.log(detail.response);
+        this.set('_user', detail.response);
       },
 
       _showPage404: function() {

@@ -71,10 +71,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <iron-a11y-keys id="a11y" keys="space" on-keys-pressed="_spacePressed"></iron-a11y-keys>
 
-    <iron-cookie name="colorsea_identity" value="{{ _userCookie }}"></iron-cookie>
+    <!-- <iron-cookie name="colorsea_identity" value="{{ _userCookie }}"></iron-cookie> -->
     <iron-ajax
       id="getLastColorAjax"
-      auto
       url="/api/colorschemes/{{ userCookie.last }}"
       handle-as="json"
       on-response="_lastColorResponse"></iron-ajax>
@@ -148,13 +147,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           type: Boolean,
           value: false,
         },
-        _userCookie: {
-          type: String,
-        },
-        userCookie: {
-          type: Object,
-          computed: '_parseUserCookie(_userCookie)',
-        }
       },
 
       keyBindings: {
@@ -167,12 +159,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       listeners: {
         'hex-changed': '_onHexChanged'
-      },
-
-      _parseUserCookie: function(cookie) {
-        var v = JSON.parse(decodeURIComponent(cookie).replace('j:', ''));
-        // console.log(v);
-        return v;
       },
 
       _lastColorResponse: function(e, detail) {
@@ -338,9 +324,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       ready: function() {
         this.$.a11y.target = document.querySelector('body');
-        // this.set('colorObjects', this._randomizeHexColors(4));
-        // this.set('_editingId', this.colorObjects[0]._id);
-        // this.set('_editingIndex', 0);
+        this.set('colorObjects', this._randomizeHexColors(4));
+        this.set('_editingId', this.colorObjects[0]._id);
+        this.set('_editingIndex', 0);
       }
     });
   </script>
