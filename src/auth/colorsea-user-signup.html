@@ -1,0 +1,64 @@
+<dom-module id="colorsea-user-signup">
+  <template>
+    <iron-ajax
+      id="signupAjax"
+      method="POST"
+      url="/api/auth/signup"
+      content-type="application/json"
+      handle-as="json"
+      with-credentials="true"
+      body="{{ signup }}"
+      on-response="_signupResponse"
+      on-error="_signupError"></iron-ajax>
+
+    <paper-dialog
+      id="signupDialog"
+      with-backdrop>
+      <h2>Sign Up</h2>
+      <paper-input type="email" value="{{ signup.email }}" label="Email"></paper-input>
+      <paper-input type="password" value="{{ signup.password }}" label="Password"></paper-input>
+      <div class="buttons">
+        <paper-button on-tap="tryLogin">Create Account</paper-button>
+      </div>
+    </paper-dialog>
+  </template>
+  <script>
+  Polymer({
+    is: 'colorsea-user-signup',
+
+    properties: {
+
+      user: {
+        type: Object,
+        notify: true,
+      },
+
+      signup: {
+        type: Object,
+        value: function() {
+          return {};
+        }
+      },
+    },
+
+    _signupResponse: function(e, detail) {
+      // console.log(detail.response);
+      this.set('signup', {});
+      this.set('user', detail.response);
+      this.$.signupDialog.close();
+    },
+
+    _signupError: function(e, detail) {
+      console.log(detail.response);
+    },
+
+    openSignupDialog: function() {
+      this.$.signupDialog.open();
+    },
+
+    tryLogin: function() {
+      this.$.signupAjax.generateRequest();
+    },
+  });
+  </script>
+</dom-module>

@@ -1,0 +1,64 @@
+<dom-module id="colorsea-user-login">
+  <template>
+    <iron-ajax
+      id="loginAjax"
+      method="POST"
+      url="/api/auth/login"
+      content-type="application/json"
+      handle-as="json"
+      with-credentials="true"
+      body="{{ login }}"
+      on-response="_loginResponse"
+      on-error="_loginError"></iron-ajax>
+
+    <paper-dialog
+      id="loginDialog"
+      with-backdrop>
+      <h2>Log In</h2>
+      <paper-input type="email" value="{{ login.email }}" label="Email"></paper-input>
+      <paper-input type="password" value="{{ login.password }}" label="Password"></paper-input>
+      <div class="buttons">
+        <paper-button on-tap="tryLogin">Log In</paper-button>
+      </div>
+    </paper-dialog>
+  </template>
+  <script>
+  Polymer({
+    is: 'colorsea-user-login',
+
+    properties: {
+
+      user: {
+        type: Object,
+        notify: true,
+      },
+
+      login: {
+        type: Object,
+        value: function() {
+          return {};
+        }
+      },
+    },
+
+    _loginResponse: function(e, detail) {
+      // console.log(detail.response);
+      this.set('login', {});
+      this.set('user', detail.response);
+      this.$.loginDialog.close();
+    },
+
+    _loginError: function(e, detail) {
+      console.log(detail.response);
+    },
+
+    openLoginDialog: function() {
+      this.$.loginDialog.open();
+    },
+
+    tryLogin: function() {
+      this.$.loginAjax.generateRequest();
+    },
+  });
+  </script>
+</dom-module>

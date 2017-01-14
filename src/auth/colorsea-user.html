@@ -1,0 +1,66 @@
+<link rel="import" href="colorsea-user-login.html">
+<link rel="import" href="colorsea-user-signup.html">
+
+<dom-module id="colorsea-user">
+  <template>
+
+    <iron-ajax
+      auto
+      id="currentAjax"
+      url="/api/auth/current"
+      handle-as="json"
+      with-credentials="true"
+      on-response="_currentResponse"></iron-ajax>
+
+    <iron-ajax
+      id="logoutAjax"
+      url="/api/auth/logout"
+      handle-as="json"
+      with-credentials="true"
+      on-response="_logoutResponse"></iron-ajax>
+
+    <colorsea-user-login
+      id="userLogin"
+      user="{{ user }}"></colorsea-user-login>
+    <colorsea-user-signup
+      id="userSignup"
+      user="{{ user }}"></colorsea-user-signup>
+
+  </template>
+  <script>
+  Polymer({
+    is: 'colorsea-user',
+
+    properties: {
+      user: {
+        type: Object,
+        value: function() {
+          return {};
+        },
+        notify: true,
+      },
+    },
+
+    _currentResponse: function(e, detail) {
+      // console.log(detail.response);
+      this.set('user', detail.response);
+    },
+
+    loginUser: function() {
+      this.$.userLogin.openLoginDialog();
+    },
+
+    signupUser: function() {
+      this.$.userSignup.openSignupDialog();
+    },
+
+    _logoutResponse: function(e, detail) {
+      this.set('user', {});
+    },
+
+    logoutUser: function() {
+      this.$.logoutAjax.generateRequest();
+    },
+  })
+  </script>
+</dom-module>

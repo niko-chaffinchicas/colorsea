@@ -9,7 +9,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 -->
 
 <link rel="import" href="../bower_components/polymer/polymer.html">
-<!-- <link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
 <link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
 <link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
 <link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
@@ -17,13 +17,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/iron-pages/iron-pages.html"> -->
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="../bower_components/paper-input/paper-input.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="/src/picker-view.html">
+<link rel="import" href="/src/auth/colorsea-user.html">
 <link rel="import" href="/src/elements/color-editing-panel/color-editing-panel.html">
 
 <!-- <link rel="import" href="my-icons.html"> -->
@@ -35,6 +36,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         display: block;
         width: 100%;
         height: 100%;
+
+        --picker-top-margin: -64px;
+        --toolbar-height: 64px;
+        --drawer-width: 284px;
       }
 
       * {
@@ -42,39 +47,29 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         /*-webkit-touch-callout: none;*/
       }
 
-      .layout {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-        width: 100%;
+      app-drawer {
+        --app-drawer-width: var(--drawer-width);
+        /*box-shadow: 0 0 3px rgba(0, 0, 0, 0.5);*/
       }
 
-      .layout-header {
-        height: 50px;
-        flex-grow: 0;
-        padding: 15px 20px;
-        z-index: 200;
-        display: flex;
-        box-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
+      app-header app-toolbar {
+        height: var(--toolbar-height);
       }
 
-      .layout-header__title {
-        flex-grow: 1;
-        line-height: 40px;
-        margin: 0;
+      app-header {
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
       }
 
-      .layout-body {
-        flex-grow: 900;
-        position: relative;
+      app-toolbar {
+        /*box-shadow: 0 2px 0 rgba(0, 0, 0, 0.1);*/
       }
 
-      paper-input {
-        min-width: 300px;
-      }
-
-      #profileDialog {
-        margin: 0;
+      picker-view {
+        --top-offset: var(--toolbar-height);
+        margin-top: var(--picker-top-margin, 0);
+        display: block;
+        height: 100vh;
       }
 
       .profile-toggle {
@@ -85,89 +80,42 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       .profile-toggle iron-icon {
         margin-left: 10px;
       }
-
-      .profile-email {
-        max-width: 300px;
-      }
     </style>
 
-    <div class="layout">
-      <header class="layout-header">
-        <h3 class="layout-header__title">Colorsea</h3>
+    <colorsea-user
+      id="userManager"
+      user="{{ user }}"></colorsea-user>
+
+    <app-drawer-layout force-narrow="true">
+      <app-drawer>
 
         <template is="dom-if" if="{{ !_userLoggedIn }}">
-          <paper-button on-tap="openLoginDialog">Log In</paper-button>
-          <paper-button on-tap="openSignupDialog">Sign Up</paper-button>
+          <paper-button on-tap="login">Log In</paper-button>
+          <paper-button on-tap="signup">Sign Up</paper-button>
+          <colorsea-signup></colorsea-signup>
         </template>
         <template is="dom-if" if="{{ _userLoggedIn }}">
-          <paper-button class="profile-toggle" on-tap="openProfileDialog" icon="account-circle">
-            {{ _user.local.email }}
-            <iron-icon icon="account-circle"></iron-icon>
+          <iron-icon icon="account-circle"></iron-icon> {{ user.local.email }}<br>
+          <paper-button on-tap="logout">Log Out</paper-button>
           </paper-button>
         </template>
 
-        <paper-dialog
-          id="signupDialog"
-          with-backdrop>
-          <h2>Sign Up</h2>
-          <paper-input type="email" value="{{ signup.email }}" label="Email"></paper-input>
-          <paper-input type="password" value="{{ signup.password }}" label="Password"></paper-input>
-          <div class="buttons">
-            <paper-button on-tap="trySignup">Create Account</paper-button>
-          </div>
-        </paper-dialog>
+      </app-drawer>
+      <app-header-layout>
+        <app-header condenses fixed>
+          <app-toolbar>
+            <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
+            <div main-title>Colorsea</div>
+          </app-toolbar>
+        </app-header>
 
-        <paper-dialog
-          id="loginDialog"
-          with-backdrop>
-          <h2>Log In</h2>
-          <paper-input type="email" value="{{ login.email }}" label="Email"></paper-input>
-          <paper-input type="password" value="{{ login.password }}" label="Password"></paper-input>
-          <div class="buttons">
-            <paper-button on-tap="tryLogin">Login</paper-button>
-          </div>
-        </paper-dialog>
+        <div>
+          <picker-view></picker-view>
+        </div>
 
-        <paper-dialog
-          id="profileDialog"
-          horizontal-align="right"
-          vertical-align="top"
-          no-overlap>
-          <div class="buttons">
-            <paper-button on-tap="tryLogout">Log Out</paper-button>
-          </div>
-        </paper-dialog>
+      </app-header-layout>
+    </app-drawer-layout>
 
-        <iron-ajax
-          id="loginAjax"
-          method="POST"
-          url="/api/auth/login"
-          content-type="application/json"
-          handle-as="json"
-          with-credentials="true"
-          body="{{ login }}"
-          on-response="_loginResponse"
-          on-error="_loginError"></iron-ajax>
-
-        <iron-ajax
-          auto
-          id="currentAjax"
-          url="/api/auth/current"
-          handle-as="json"
-          with-credentials="true"
-          on-response="_currentResponse"></iron-ajax>
-
-        <iron-ajax
-          id="logoutAjax"
-          url="/api/auth/logout"
-          handle-as="json"
-          with-credentials="true"
-          on-response="_logoutResponse"></iron-ajax>
-      </header>
-      <main class="layout-body">
-        <picker-view></picker-view>
-      </main>
-    </div>
 
   </template>
 
@@ -176,12 +124,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       is: 'my-app',
 
       properties: {
-        login: {
-          type: Object,
-          value: function() {
-            return {};
-          }
-        },
 
         allowScrolling: {
           type: Boolean,
@@ -189,14 +131,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           reflectToAttribute: true,
         },
 
-        _user: {
+        user: {
           type: Object,
           notify: true,
         },
 
         _userLoggedIn: {
           type: Boolean,
-          computed: 'userIsLoggedIn(_user)'
+          computed: 'userIsLoggedIn(user)'
         }
       },
 
@@ -204,54 +146,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         'allow-scrolling': '_setScrolling'
       },
 
-      openLoginDialog: function() {
-        this.$.loginDialog.open();
+      login: function() {
+        this.$.userManager.loginUser();
       },
 
-      openSignupDialog: function() {
-        this.$.signupDialog.open();
+      signup: function() {
+        this.$.userManager.signupUser();
       },
 
       openProfileDialog: function(e) {
-        this.$.profileDialog.positionTarget = Polymer.dom(e).localTarget;
         this.$.profileDialog.open();
       },
 
-      tryLogin: function() {
-        this.$.loginAjax.generateRequest();
-      },
-
-      tryLogout: function() {
-        this.$.logoutAjax.generateRequest();
-        this.$.profileDialog.close();
-      },
-
-      getCurrent: function() {
-        this.$.currentAjax.generateRequest();
-      },
-
-      _loginResponse: function(e, detail) {
-        // console.log(detail.response);
-        this.set('login', {});
-        this.set('_user', detail.response);
-        this.$.loginDialog.close();
-      },
-
-      _loginError: function(e, detail) {
-        // console.log(detail.response);
-      },
-
-      _logoutResponse: function(e, detail) {
-        this.set('_user', {});
+      logout: function() {
+        this.$.userManager.logoutUser();
       },
 
       userIsLoggedIn: function(user) {
         return user.hasOwnProperty('local');
-      },
-
-      _currentResponse: function(e, detail) {
-        // console.log(detail.response);
-        this.set('_user', detail.response);
       },
 
       _showPage404: function() {
