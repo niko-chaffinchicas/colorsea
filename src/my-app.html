@@ -110,7 +110,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </app-header>
 
         <div>
-          <picker-view></picker-view>
+          <picker-view color="{{ editingColor }}"></picker-view>
         </div>
 
       </app-header-layout>
@@ -132,6 +132,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         },
 
         user: {
+          type: Object,
+          notify: true,
+        },
+
+        editingColor: {
           type: Object,
           notify: true,
         },
