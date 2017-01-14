@@ -20,7 +20,7 @@
     </style>
     <div class="block-wrapper">
       <template is="dom-repeat" items="{{ colors }}">
-        <div class="block-section" style="background-color:#{{ item.hex }};"></div>
+        <div class="block-section" id="{{ item._id }}" style="background-color:#{{ item.hex }};"></div>
       </template>
     </div>
   </template>

@@ -42,6 +42,11 @@
         notify: true,
       },
 
+      editingId: {
+        type: String,
+        notify: true,
+      },
+
       _selectedColorIndex: {
         type: Number,
       }
@@ -79,7 +84,12 @@
 
     _colorBlockTapped: function(e, detail) {
       var target = Polymer.dom(e).localTarget;
+      // console.log(block, this.editingId);
       this.set('_selectedColorIndex', target.index);
+      this.async(function() {
+        var block = Polymer.dom(e).rootTarget;
+        this.set('editingId', block.id);
+      });
     },
 
     _selectedIndexChanged: function(index) {

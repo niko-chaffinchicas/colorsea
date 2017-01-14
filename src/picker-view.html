@@ -78,13 +78,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       handle-as="json"
       on-response="_lastColorResponse"></iron-ajax>
 
-    <iron-ajax
-      id="colorSchemeAjax"
-      method="PUT"
-      url="/api/colorschemes/{{ userCookie.last }}"
-      handle-as="json"
-      content-type="application/json"
-      on-response="_updatedColorResponse"></iron-ajax>
 
     <div class="color-block-wrapper">
       <div class="color-block-pointer" style$="top: {{ _getPointerOffset(_editingIndex) }};"></div>
@@ -143,10 +136,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           observer: '_editingIndexChanged'
         },
 
-        _editingId: {
+        editingId: {
           type: String,
           value: '123',
-          observer: '_editingIdChanged'
+          observer: 'editingIdChanged'
         },
 
         _updating: {
@@ -177,7 +170,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this._startUpdating();
         this.set('colorObjects', objects);
         this.async(function() {
-          this.set('_editingId', this.colorObjects[0]._id);
+          this.set('editingId', this.colorObjects[0]._id);
         });
       },
 
@@ -191,7 +184,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.set('colorObjects', JSON.parse(JSON.stringify(detail.response.colors)));
         this.set('_last', JSON.parse(JSON.stringify(detail.response.colors)));
         this.async(function() {
-          this.set('_editingId', this.colorObjects[0]._id);
+          this.set('editingId', this.colorObjects[0]._id);
           this.set('_colorLoaded', true);
         });
       },
@@ -215,7 +208,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       _onColorBlockFocus: function(e) {
         var target = Polymer.dom(e).localTarget;
         if (target.nodeName.toLowerCase() == "color-block" && target.hasOwnProperty("colorId")) {
-          this.set('_editingId', target.colorId);
+          this.set('editingId', target.colorId);
         }
       },
 
@@ -223,16 +216,16 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var target = Polymer.dom(e).rootTarget;
         // console.log(target);
         if (target.nodeName.toLowerCase() == "color-block" && target.hasOwnProperty("colorId")) {
-          if (this._updating && target.colorId != this._editingId) {
+          if (this._updating && target.colorId != this.editingId) {
             return;
           }
-          this.set('_editingId', target.colorId);
+          this.set('editingId', target.colorId);
           if (this._editingColor != target.hex) {
             this.set('_editingColor', target.hex);
           }
         } else if (target.nodeName.toLowerCase() == "color-editing-panel" && this.colorObjects) {
           for (var i = 0; i < this.colorObjects.length; i++) {
-            if (this.colorObjects[i]._id == this._editingId) {
+            if (this.colorObjects[i]._id == this.editingId) {
               color = this.colorObjects[i];
               break;
             }
@@ -243,14 +236,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _onColorBlockTap: function(e, detail) {
         var target = Polymer.dom(e).localTarget;
-        this.set('_editingId', target.colorId);
+        this.set('editingId', target.colorId);
       },
 
       _editingIndexChanged: function(i) {
         // console.log(i);
       },
 
-      _editingIdChanged: function(id) {
+      editingIdChanged: function(id) {
         // console.log(id);
         var color;
         for (var i = 0; i < this.colorObjects.length; i++) {
@@ -353,9 +346,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       ready: function() {
         this.$.a11y.target = document.querySelector('body');
-        this.set('colorObjects', this._randomizeHexColors(4));
-        this.set('_editingId', this.colorObjects[0]._id);
-        this.set('_editingIndex', 0);
+        // this.set('colorObjects', this._randomizeHexColors(4));
+        // this.set('editingId', this.colorObjects[0]._id);
+        // this.set('_editingIndex', 0);
       }
     });
   </script>

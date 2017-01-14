@@ -103,6 +103,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         <colorsea-user-colors
           user="{{ user }}"
+          editing-id="{{ editingId }}"
           selected-color-scheme="{{ editingColorScheme }}"></colorsea-user-colors>
 
         <!-- <template is="dom-repeat" items="{{ editingColorScheme }}">
@@ -119,7 +120,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </app-header>
 
         <div>
-          <picker-view color-scheme="{{ editingColorScheme }}"></picker-view>
+          <picker-view
+            editing-id="{{ editingId }}"
+            color-scheme="{{ editingColorScheme }}"></picker-view>
         </div>
 
       </app-header-layout>
