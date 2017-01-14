@@ -1,5 +1,6 @@
 var mongoose = require('mongoose');
 var User = mongoose.model('User');
+var ColorScheme = mongoose.model('ColorScheme');
 
 var controllers = {};
 
@@ -30,6 +31,19 @@ controllers.show = function(req, res) {
     User.findOne({ _id: req.params.id })
     .then(function(user) {
       return res.send(user.toJSON());
+    })
+    .catch(function(err) {
+      return res.status(500).send(err.message);
+    });
+  }
+};
+
+controllers.colorSchemes = function(req, res) {
+  if (req.params.id) {
+    ColorScheme.find({ _creator: req.params.id })
+    .then(function(schemes) {
+      console.log(schemes);
+      return res.json(schemes);
     })
     .catch(function(err) {
       return res.status(500).send(err.message);

@@ -4,33 +4,34 @@ var ColorScheme = mongoose.model('ColorScheme');
 var controllers = {};
 
 controllers.index = function(req, res) {
-  ColorScheme.find({}).then(function(userList) {
-    // console.log(userList);
-    return res.send(JSON.stringify(userList));
+  ColorScheme.find({})
+  .then(function(schemeList) {
+    // console.log(schemeList);
+    return res.json(schemeList);
   });
 }
 
 
-// controllers.create = function(req, res) {
-//   if (req.body) {
-//     var user = new ColorScheme(req.body);
-//     user.save()
-//     .then(function(user) {
-//       // console.log("user created:", user);
-//       return res.send(user.toJSON());
-//     })
-//     .catch(function(err) {
-//       return res.status(500).send(err.message);
-//     });
-//   }
-// };
+controllers.create = function(req, res) {
+  if (req.body) {
+    var scheme = new ColorScheme(req.body);
+    scheme.save()
+    .then(function(scheme) {
+      // console.log("scheme created:", scheme);
+      return res.json(scheme);
+    })
+    .catch(function(err) {
+      return res.status(500).send(err.message);
+    });
+  }
+};
 
 controllers.show = function(req, res) {
   if (req.params.id) {
     ColorScheme.findOne({ _id: req.params.id })
     .then(function(colorscheme) {
       // console.log(colorscheme.toJSON());
-      return res.send(colorscheme.toJSON());
+      return res.json(colorscheme);
     })
     .catch(function(err) {
       return res.status(500).send(err.message);
@@ -48,7 +49,7 @@ controllers.update = function(req, res) {
     )
     .then(function(colorscheme) {
       // console.log("colorscheme changed:", colorscheme);
-      return res.send(colorscheme.toJSON());
+      return res.json(colorscheme);
     })
     .catch(function(err) {
       console.log(err);

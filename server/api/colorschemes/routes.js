@@ -4,6 +4,7 @@ var routes = express.Router();
 var controllers = require('./controllers');
 
 routes.get('/', controllers.index);
+routes.post('/', controllers.create);
 routes.get('/:id', controllers.show);
 routes.put('/:id', controllers.update);
 

@@ -9,6 +9,6 @@ var colorSchemeRoutes = require('./colorschemes/routes');
 
 routes.use('/auth', authRoutes);
 routes.use('/users', userRoutes);
-routes.use('/colorschemes', colorSchemeRoutes);
+routes.use('/color-schemes', colorSchemeRoutes);
 
 module.exports = routes;

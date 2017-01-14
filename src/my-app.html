@@ -25,6 +25,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-dialog/paper-dialog.html">
 <link rel="import" href="/src/picker-view.html">
 <link rel="import" href="/src/auth/colorsea-user.html">
+<link rel="import" href="/src/user-colors/user-colors.html">
 <link rel="import" href="/src/elements/color-editing-panel/color-editing-panel.html">
 
 <!-- <link rel="import" href="my-icons.html"> -->
@@ -100,9 +101,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </paper-button>
         </template>
 
-        <template is="dom-repeat" items="{{ editingColorScheme }}">
+        <colorsea-user-colors
+          user="{{ user }}"
+          selected-color-scheme="{{ editingColorScheme }}"></colorsea-user-colors>
+
+        <!-- <template is="dom-repeat" items="{{ editingColorScheme }}">
           <br>#{{ item.hex }}
-        </template>
+        </template> -->
 
       </app-drawer>
       <app-header-layout>
@@ -114,7 +119,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </app-header>
 
         <div>
-          <picker-view color-objects="{{ editingColorScheme }}"></picker-view>
+          <picker-view color-scheme="{{ editingColorScheme }}"></picker-view>
         </div>
 
       </app-header-layout>

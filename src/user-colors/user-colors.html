@@ -1,0 +1,91 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="user-color-block.html">
+
+<dom-module id="colorsea-user-colors">
+  <template>
+    <style>
+      user-color-block {
+        cursor: pointer;
+      }
+    </style>
+
+    <iron-ajax
+      id="colorsAjax"
+      url="/api/users/{{ user._id }}/color-schemes"
+      handle-as="json"
+      on-response="_colorsResponse"></iron-ajax>
+    <p id="test">{{ _selectedColorIndex }} selected</p>
+
+    <template is="dom-repeat" items="{{ userColors }}" index-as="i">
+      <user-color-block on-tap="_colorBlockTapped" index="{{ i }}" data-foo="bar" colors="{{ item.colors }}"></user-color-block>
+    </template>
+
+  </template>
+  <script>
+  Polymer({
+    is: 'colorsea-user-colors',
+
+    properties: {
+      user: {
+        type: Object,
+        notify: true,
+      },
+
+      userColors: {
+        type: Array,
+        notify: true,
+      },
+
+      selectedColorScheme: {
+        type: Object,
+        notify: true,
+      },
+
+      _selectedColorIndex: {
+        type: Number,
+      }
+    },
+
+    observers: [
+      'userUpdated(user)',
+      'userColorsUpdated(userColors)',
+      '_selectedIndexChanged(_selectedColorIndex)',
+    ],
+
+    userUpdated: function(user) {
+      // console.log(user);
+      if (user && user._id) {
+        // console.log(user._id);
+        this.$.colorsAjax.generateRequest();
+      } else {
+        this.set('userColors', []);
+      }
+    },
+
+    userColorsUpdated: function(colors) {
+      // console.log(colors);
+      if (colors.length > 0) {
+        this.set('_selectedColorIndex', 0);
+      } else {
+        this.set('_selectedColorIndex', -1);
+      }
+    },
+
+    _colorsResponse: function(e, detail) {
+      // console.log(detail.response);
+      this.set('userColors', detail.response);
+    },
+
+    _colorBlockTapped: function(e, detail) {
+      var target = Polymer.dom(e).localTarget;
+      this.set('_selectedColorIndex', target.index);
+    },
+
+    _selectedIndexChanged: function(index) {
+      // console.log(this.userColors);
+      this.set('selectedColorScheme', this.get(['userColors', index]));
+    },
+  });
+  </script>
+</dom-module>

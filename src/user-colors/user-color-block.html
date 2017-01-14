@@ -1,0 +1,44 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+
+<dom-module id="user-color-block">
+  <template>
+    <style>
+      :host {
+        display: block;
+        margin-bottom: 10px;
+      }
+
+      .block-wrapper {
+        display: flex;
+        width: 100%;
+      }
+
+      .block-section {
+        height: var(--block-height, 50px);
+        flex-grow: 1;
+      }
+    </style>
+    <div class="block-wrapper">
+      <template is="dom-repeat" items="{{ colors }}">
+        <div class="block-section" style="background-color:#{{ item.hex }};"></div>
+      </template>
+    </div>
+  </template>
+  <script>
+  Polymer({
+    is: 'user-color-block',
+
+    properties: {
+      colors: {
+        type: Array,
+        notify: true,
+      },
+
+      index: {
+        type: Number,
+        reflectToAttribute: true,
+      }
+    }
+  });
+  </script>
+</dom-module>
