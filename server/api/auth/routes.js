@@ -8,14 +8,8 @@ routes.get('/', function(req, res) {
   return res.json({ success: req.isAuthenticated() });
 });
 
-routes.post('/signup', passport.authenticate('local-signup', {
-  successRedirect: '/profile',
-  failureRedirect: '/api/auth/signup',
-  failureFlash: true,
-}));
-
+routes.post('/signup', controllers.signup);
 routes.post('/login', controllers.login);
-
 routes.get('/current', controllers.current);
 routes.get('/logout', controllers.logout);
 

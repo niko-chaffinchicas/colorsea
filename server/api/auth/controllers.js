@@ -4,21 +4,38 @@ var User = mongoose.model('User');
 
 var controllers = {};
 
+// Log the user in and then return the user as a JSON
+function loginUser(req, res, user) {
+  req.login(user, function(err) {
+    if (err) {
+      return res.status(500).json(err);
+    } else {
+      req.session.save(); // Save modifications
+      res.header('Access-Control-Allow-Credentials', 'true');
+      res.header("Access-Control-Allow-Origin", "*");
+      return res.json(user);
+    }
+  });
+}
+
+controllers.signup = function(req, res) {
+  passport.authenticate('local-signup', function(err, user, info) {
+    if (err) {
+      return res.status(500).json({ success: false, message: err.toString() });
+    } else {
+      // Log the user in after signup
+      return loginUser(req, res, user);
+    }
+  })(req, res);
+}
+
 controllers.login = function(req, res) {
   passport.authenticate('local-login', function(err, user, info) {
     if (err) {
       return res.status(500).json({ success: false, message: "Incorrect login." });
     } else {
-      req.login(user, function(err) {
-        if (err) {
-          return res.status(500).json(err);
-        } else {
-          req.session.save(); // This saves the modifications
-          res.header('Access-Control-Allow-Credentials', 'true');
-          res.header("Access-Control-Allow-Origin", "*");
-          return res.json(user);
-        }
-      });
+      // Log the user in after signup
+      return loginUser(req, res, user);
     }
   })(req, res);
 }
