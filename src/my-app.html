@@ -100,6 +100,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           </paper-button>
         </template>
 
+        <template is="dom-repeat" items="{{ editingColorScheme }}">
+          <br>#{{ item.hex }}
+        </template>
+
       </app-drawer>
       <app-header-layout>
         <app-header condenses fixed>
@@ -110,7 +114,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </app-header>
 
         <div>
-          <picker-view color="{{ editingColor }}"></picker-view>
+          <picker-view color-objects="{{ editingColorScheme }}"></picker-view>
         </div>
 
       </app-header-layout>
@@ -137,7 +141,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         },
 
         editingColor: {
-          type: Object,
+          type: Array,
           notify: true,
         },
 
