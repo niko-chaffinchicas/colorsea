@@ -106,9 +106,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           editing-id="{{ editingId }}"
           selected-color-scheme="{{ editingColorScheme }}"></colorsea-user-colors>
 
-        <!-- <template is="dom-repeat" items="{{ editingColorScheme }}">
+        <template is="dom-repeat" items="{{ editingColorScheme.colors }}">
           <br>#{{ item.hex }}
-        </template> -->
+        </template>
 
       </app-drawer>
       <app-header-layout>

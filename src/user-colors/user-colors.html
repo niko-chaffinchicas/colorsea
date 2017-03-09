@@ -15,7 +15,7 @@
       url="/api/users/{{ user._id }}/color-schemes"
       handle-as="json"
       on-response="_colorsResponse"></iron-ajax>
-    <p id="test">{{ _selectedColorIndex }} selected</p>
+    <p id="test">{{ _selectedSchemeIndex }} selected</p>
 
     <template is="dom-repeat" items="{{ userColors }}" index-as="i">
       <user-color-block on-tap="_colorBlockTapped" index="{{ i }}" data-foo="bar" colors="{{ item.colors }}"></user-color-block>
@@ -47,7 +47,7 @@
         notify: true,
       },
 
-      _selectedColorIndex: {
+      _selectedSchemeIndex: {
         type: Number,
       }
     },
@@ -55,7 +55,8 @@
     observers: [
       'userUpdated(user)',
       'userColorsUpdated(userColors)',
-      '_selectedIndexChanged(_selectedColorIndex)',
+      '_selectedIndexChanged(_selectedSchemeIndex)',
+      '_selectedColorSchemeChanged(selectedColorScheme.colors.*)',
     ],
 
     userUpdated: function(user) {
@@ -71,9 +72,9 @@
     userColorsUpdated: function(colors) {
       // console.log(colors);
       if (colors.length > 0) {
-        this.set('_selectedColorIndex', 0);
+        this.set('_selectedSchemeIndex', 0);
       } else {
-        this.set('_selectedColorIndex', -1);
+        this.set('_selectedSchemeIndex', -1);
       }
     },
 
@@ -85,7 +86,7 @@
     _colorBlockTapped: function(e, detail) {
       var target = Polymer.dom(e).localTarget;
       // console.log(block, this.editingId);
-      this.set('_selectedColorIndex', target.index);
+      this.set('_selectedSchemeIndex', target.index);
       this.async(function() {
         var block = Polymer.dom(e).rootTarget;
         this.set('editingId', block.id);
@@ -95,6 +96,12 @@
     _selectedIndexChanged: function(index) {
       // console.log(this.userColors);
       this.set('selectedColorScheme', this.get(['userColors', index]));
+    },
+
+    _selectedColorSchemeChanged: function() {
+      console.log("color scheme changed");
+      this.set(['userColors', this._selectedSchemeIndex], this.selectedColorScheme);
+      console.log(this.userColors, this.selectedColorScheme.colors);
     },
   });
   </script>

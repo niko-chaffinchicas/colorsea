@@ -81,7 +81,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <div class="color-block-wrapper">
       <div class="color-block-pointer" style$="top: {{ _getPointerOffset(_editingIndex) }};"></div>
-      <template is="dom-repeat" items="{{ colorObjects }}" as="color" index-as="i">
+      <template is="dom-repeat" items="{{ colorScheme.colors }}" as="color" index-as="i">
         <color-block
           color-index="{{ i }}"
           color-id="{{ color._id }}"
@@ -90,7 +90,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           class="color-block"
           hex="{{ color.hex }}"
           randomizing="{{ _updating }}"
-          style$="top: {{ _getBlockOffset(i) }}; height: {{ _getBlockWidth(colorObjects) }}; background-color:#{{ color.hex }};"></color-block>
+          style$="top: {{ _getBlockOffset(i) }}; height: {{ _getBlockWidth(colorScheme.colors) }}; background-color:#{{ color.hex }};"></color-block>
       </template>
     </div>
 
@@ -158,7 +158,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       observers: [
-        '_colorSchemeChanged(colorObjects.*)',
+        '_colorSchemeChanged(colorScheme.colors.*)',
         '_colorSchemeIdChanged(colorScheme._id)'
       ],
 
@@ -168,23 +168,28 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _loadColorObjects: function(objects) {
         this._startUpdating();
-        this.set('colorObjects', objects);
+        this.set('_last', JSON.parse(JSON.stringify(this.colorScheme.colors)));
+        this.set('_colorLoaded', false);
+        this.set('colorScheme.colors', objects);
         this.async(function() {
-          this.set('editingId', this.colorObjects[0]._id);
+          this.set('editingId', this.colorScheme.colors[0]._id);
         });
+        this.set('_colorLoaded', true);
       },
 
       _colorSchemeIdChanged: function(id) {
         // console.log(id);
-        this._loadColorObjects(this.colorScheme.colors);
+        if (this.colorScheme) {
+          this._loadColorObjects(this.colorScheme.colors);
+        }
       },
 
       _lastColorResponse: function(e, detail) {
         // console.log(detail.response.colors);
-        this.set('colorObjects', JSON.parse(JSON.stringify(detail.response.colors)));
+        this.set('colorScheme.colors', JSON.parse(JSON.stringify(detail.response.colors)));
         this.set('_last', JSON.parse(JSON.stringify(detail.response.colors)));
         this.async(function() {
-          this.set('editingId', this.colorObjects[0]._id);
+          this.set('editingId', this.colorScheme.colors[0]._id);
           this.set('_colorLoaded', true);
         });
       },
@@ -194,7 +199,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       _getBlockOffset: function(i) {
-        return (100 / this.colorObjects.length * i) + "%";
+        if (this.colorScheme && this.colorScheme.colors) {
+          return (100 / this.colorScheme.colors.length * i) + "%";
+        }
       },
 
       _getPointerOffset: function(i) {
@@ -202,6 +209,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       },
 
       _getBlockWidth: function(colorObjects) {
+        colorObjects = colorObjects || [];
         return (100 / colorObjects.length) + "%";
       },
 
@@ -223,14 +231,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           if (this._editingColor != target.hex) {
             this.set('_editingColor', target.hex);
           }
-        } else if (target.nodeName.toLowerCase() == "color-editing-panel" && this.colorObjects) {
-          for (var i = 0; i < this.colorObjects.length; i++) {
-            if (this.colorObjects[i]._id == this.editingId) {
-              color = this.colorObjects[i];
+        } else if (target.nodeName.toLowerCase() == "color-editing-panel" && this.colorScheme && this.colorScheme.colors) {
+          for (var i = 0; i < this.colorScheme.colors.length; i++) {
+            if (this.colorScheme.colors[i]._id == this.editingId) {
+              color = this.colorScheme.colors[i];
               break;
             }
           }
-          this.set(['colorObjects', i, 'hex'], this._editingColor);
+          this.set(['colorScheme', 'colors', i, 'hex'], this._editingColor);
         }
       },
 
@@ -245,23 +253,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       editingIdChanged: function(id) {
         // console.log(id);
-        var color;
-        for (var i = 0; i < this.colorObjects.length; i++) {
-          if (this.colorObjects[i]._id == id) {
-            color = this.colorObjects[i];
-            break;
+        if (this.colorScheme && this.colorScheme.colors) {
+          var color;
+          for (var i = 0; i < this.colorScheme.colors.length; i++) {
+            if (this.colorScheme.colors[i]._id == id) {
+              color = this.colorScheme.colors[i];
+              break;
+            }
           }
-        }
-        if (color) {
-          // console.log(color, i);
-          this.set('_editingIndex', i);
-          this.set('_editingColor', color.hex);
+          if (color) {
+            // console.log(color, i);
+            this.set('_editingIndex', i);
+            this.set('_editingColor', color.hex);
+          }
         }
       },
 
       _editingColorChanged: function(val) {
         // console.log(val);
-        this.set(['colorObjects', this._editingIndex, 'hex'], val);
+        this.set(['colorScheme', 'colors', this._editingIndex, 'hex'], val);
         // var colors = this.colors;
         // this.set('colors', []);
         // this.set('colors', colors);
@@ -308,7 +318,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         // console.log("space pressed", e);
         e.stopPropagation();
         var randomColors = this._randomizeHexColors(4);
-        var _colorObjects = JSON.parse(JSON.stringify(this.colorObjects));
+        var _colorObjects = JSON.parse(JSON.stringify(this.colorScheme.colors));
         for (var i = 0; i < randomColors.length; i++) {
           _colorObjects[i].hex = randomColors[i].hex;
         }
@@ -328,16 +338,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _colorSchemeChanged: function() {
         if (this._colorLoaded) {
-          if (!this._colorSchemesEqual(this.colorObjects, this._last)) {
+          // console.log("changing colors...");
+          if (!this._colorSchemesEqual(this.colorScheme.colors, this._last)) {
             // console.log("changing colors...");
             if (this.__changeTimeout) {
               this.cancelAsync(this.__changeTimeout);
             }
             var self = this;
             var _timeout = this.async(function() {
-              // console.log("the color scheme has changed");
-              this.$.colorSchemeAjax.body = JSON.stringify({ colors: this.colorObjects });
-              this.$.colorSchemeAjax.generateRequest();
+              console.log("the color scheme has changed");
+              // this.$.colorSchemeAjax.body = JSON.stringify({ colors: this.colorScheme.colors });
+              // this.$.colorSchemeAjax.generateRequest();
             }, 500);
             this.set('__changeTimeout', _timeout);
           }

@@ -42,7 +42,7 @@ controllers.colorSchemes = function(req, res) {
   if (req.params.id) {
     ColorScheme.find({ _creator: req.params.id })
     .then(function(schemes) {
-      console.log(schemes);
+      // console.log(schemes);
       return res.json(schemes);
     })
     .catch(function(err) {
